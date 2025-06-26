@@ -1,0 +1,10 @@
+cc_library_shared {
+    name: "libswitch3hal",
+    srcs: ["src/switch3hal.cpp"],
+    shared_libs: ["libgpiohal"],
+    export_include_dirs: ["include"],
+    cflags: [
+        "-Wall",
+        "-Werror",
+    ],
+}
