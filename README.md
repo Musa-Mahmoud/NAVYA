@@ -71,15 +71,14 @@ Made for AOSP (Android Open Source Project) platforms — designed with embedded
 
 ---
 ##  Project Structure
-
-NAVYA/
-│
-├── **app/**                        --> Android UI and system integration
-├── **camera/**                  --> Side camera feed + object detection logic
-├── **voice_assistant/**    --> Voice wake-word detection and TTS reply
-├── **ambient_light/**       --> Proximity-based ambient LED controller
-├── **hardware/**              --> Custom VHALs for Switch and Ambient Light 
-└── **sepolicy/**                --> SELinux rules for secure hardware access
+**NAVYA/**<br>
+│<br>
+├── **app/**<br>
+├── **camera/**<br>
+├── **voice_assistant/**<br>
+├── **ambient_light/**<br>
+├── **hardware/**<br>
+└── **sepolicy/**
 
 ---
 ##  Developed By
