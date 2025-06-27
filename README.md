@@ -98,5 +98,34 @@ Made for AOSP (Android Open Source Project) platforms — designed with embedded
 -  Gesture controls for touchless interaction
 -  Companion mobile app for status and control
 ---
+## System Requirements Specification (SRS)
+
+### Functional System Requirements
+
+| ID              | Requirement Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------------------|
+| SRS-FUNC-001    | The system shall detect objects in the blind spot using side-mounted cameras and computer vision. |
+| SRS-FUNC-002    | The system shall display visual safety indicators (Green/Yellow/Red) based on object proximity. |
+| SRS-FUNC-003    | The system shall mirror the side camera feeds on the digital display in real time.       |
+| SRS-FUNC-004    | The system shall provide ambient light warnings using an LED strip based on object proximity. |
+| SRS-FUNC-005    | The system shall activate the voice assistant via a wake word ("HiCar").                |
+| SRS-FUNC-006    | The voice assistant shall respond using TTS and perform limited interactions like greeting the user. |
+| SRS-FUNC-007    | The system shall enforce security access to camera and LED using SELinux.               |
+
+---
+## Software Requirements Specification (SwRS)
+
+### Software Functional Requirements
+
+| ID              | Requirement Description                                                                 |
+|-----------------|-----------------------------------------------------------------------------------------|
+| SWRS-FUNC-001   | App shall run as a privileged system app in AOSP and use SurfaceView or CameraX for camera feed. |
+| SWRS-FUNC-002   | TensorFlow Lite shall be used for object detection in real-time on camera frames.       |
+| SWRS-FUNC-003   | Vosk API shall be used to detect wake word and speech-to-text conversion.               |
+| SWRS-FUNC-004   | Android TTS engine shall be used to reply back to the user.                             |
+| SWRS-FUNC-005   | App shall control the GPIO-based LED strip using HAL or JNI interface.                  |
+| SWRS-FUNC-006   | SELinux policies shall restrict access to camera and GPIO control to the NAVYA system app only. |
+| SWRS-FUNC-007   | App shall draw proximity circles using Android Canvas or OpenGL overlay.                |
+---
 
 > **NAVYA** aims to redefine the driver experience by combining safety, intelligence, and interaction — built fully on embedded Android technologies.
