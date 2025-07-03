@@ -1,8 +1,11 @@
 #ifndef SWITCH3_HAL_H_
 #define SWITCH3_HAL_H_
 
-#include <GpioHal.h>
+#include "gpiohal.h"
 #include <string>
+
+#define PRESSED    1
+#define UNPRESSED  0
 
 class Switch3Hal
 {
@@ -21,11 +24,12 @@ public:
     State getState();
 
 private:
-    GpioHal mGpioA;
-    GpioHal mGpioB;
 
-    constexpr int PRESSED = 0;
-    constexpr int UNPRESSED = 1;
+    int mPinA;
+    int mPinB;
+
+    GpioHal gpio;
+
 };
 
 #endif /* SWITCH3_HAL_H_ */

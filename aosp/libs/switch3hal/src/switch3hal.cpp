@@ -1,19 +1,22 @@
-
-#include "Switch3Hal.h"
+#include "switch3hal.hpp"
 
 Switch3Hal::Switch3Hal(int pinA, int pinB)
-    : mGpioA(pinA, "in"),
-      mGpioB(pinB, "in") {}
+    : mPinA(pinA), mPinB(pinB) {
+    gpio.exportGpio(mPinA);
+    gpio.exportGpio(mPinB);
+    gpio.setGpioDirection(mPinA, "in");
+    gpio.setGpioDirection(mPinB, "in");
+}
 
-Switch3Hal::~Switch3Hal() = default;
+Switch3Hal::~Switch3Hal() {}
 
 Switch3Hal::State Switch3Hal::getState() 
 {
     int valueA = 0;
     int valueB = 0;
 
-    mGpioA.getGpioValue(mGpioA.getPin(), &valueA);
-    mGpioB.getGpioValue(mGpioB.getPin(), &valueB);
+    gpio.getGpioValue(mPinA, &valueA);
+    gpio.getGpioValue(mPinB, &valueB);
 
     if (valueA == PRESSED && valueB == UNPRESSED) 
     {

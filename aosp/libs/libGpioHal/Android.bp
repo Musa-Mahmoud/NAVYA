@@ -1,0 +1,8 @@
+cc_library_shared {
+    name: "libGpioHal",
+    srcs: ["src/gpiohal.cpp"],
+    stl: "libc++",
+    export_include_dirs: ["include"],
+    vendor : true,
+    
+}
