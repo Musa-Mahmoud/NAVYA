@@ -9,11 +9,13 @@ import org.tensorflow.lite.support.common.FileUtil
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import androidx.core.graphics.scale
-
-data class Detection(val label: String, val score: Float, val location: RectF)
+import com.iti.camera2.dto.Detection
 
 class ObjectDetector(context: Context) {
     private val interpreter: Interpreter
+
+//    // Add depth estimator
+//    private val depthEstimator = DepthEstimator(context)
     private val inputSize = 300 // Must be 300 for SSD MobileNet
 
     init {
@@ -65,7 +67,23 @@ class ObjectDetector(context: Context) {
             val label = labelMap[classId] ?: "Unknown"
             Log.d("classId", "label: $label")
 
-            detections.add(Detection(label, score, rect))
+            val detection = Detection(
+                label,
+                score,
+                rect
+            )
+            // Estimate distance
+//            val distance = depthEstimator.estimateDistance(bitmap, detection)
+//            val category = depthEstimator.getDistanceCategory(distance)
+//            Log.d("Depth", "distance: $distance")
+//            Log.d("Depth", "category: $category")
+
+            detections.add(detection
+//                detection.copy(
+//                    distance = distance,
+//                    category = category
+//                )
+            )
         }
 
         return detections
@@ -96,6 +114,7 @@ class ObjectDetector(context: Context) {
 
     fun close() {
         interpreter.close()
+//        depthEstimator.close()
     }
 
     private val labelMap = mapOf(

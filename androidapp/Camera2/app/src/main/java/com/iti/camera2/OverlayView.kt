@@ -6,6 +6,8 @@ import android.util.AttributeSet
 import android.view.View
 import kotlin.text.format
 import androidx.core.graphics.toColorInt
+import com.iti.camera2.dto.Detection
+//import com.iti.camera2.dto.DistanceCategory
 
 class OverlayView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     private val detections = mutableListOf<Detection>()
@@ -34,6 +36,13 @@ class OverlayView(context: Context, attrs: AttributeSet? = null) : View(context,
         super.onDraw(canvas)
 
         for (detection in detections) {
+//            // Set color based on distance category
+//            boxPaint.color = when (detection.category) {
+//                DistanceCategory.CLOSE -> Color.RED
+//                DistanceCategory.NEAR -> Color.YELLOW
+//                DistanceCategory.FAR -> Color.GREEN
+//                else -> Color.CYAN // Default for unknown
+//            }
             // Set different colors for different classes
             boxPaint.color = when (detection.label) {
                 "person" -> Color.GREEN
@@ -45,6 +54,8 @@ class OverlayView(context: Context, attrs: AttributeSet? = null) : View(context,
             canvas.drawRect(detection.location, boxPaint)
 
             // Draw label with confidence score
+//            val distanceText = detection.distance?.let { "%.1f m".format(it) } ?: "N/A"
+//            val label = "${detection.label} (${"%.2f".format(detection.score)} @ $distanceText)"
             val label = "${detection.label} (${"%.2f".format(detection.score)})"
             val textWidth = textPaint.measureText(label)
             val height = textPaint.fontMetrics.run { descent - ascent }
