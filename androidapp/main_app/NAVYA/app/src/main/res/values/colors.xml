@@ -2,4 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="main_background">#111111</color>
+    <color name="fragment_background">#1e1e1e</color>
+    <color name="dark_surface_light">#2E2E2E</color> <!-- Slightly lighter -->
+    <color name="dark_surface_lighter">#4A4A4A</color> <!-- Noticeably lighter -->
+    <color name="button_background">#333333</color>
+    <color name="button_pressed">#555555</color>
+    <color name="button_text">#FFFFFF</color>
 </resources>

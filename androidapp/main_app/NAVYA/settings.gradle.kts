@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NAVYA"
+rootProject.name = "NAVYA_2"
 include(":app")
  
