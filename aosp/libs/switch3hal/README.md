@@ -33,6 +33,17 @@
 ```cpp
    #include <switch3hal.hpp>
 ```
+###### hardware/interfaces/automotive/vehicle/aidl/impl/fake_impl/hardware/Android.bp add libs in shared_libs
+```
+    shared_libs: [
+        "libgrpc++",
+        "libjsoncpp",
+        "libprotobuf-cpp-full",
+        "libGpioHal",
+        "libswitch3hal",
+    ],
+```
+
 ###### add the property logic inside the 
 ```cpp
 FakeVehicleHardware::ValueResultType FakeVehicleHardware::maybeGetSpecialValue(
