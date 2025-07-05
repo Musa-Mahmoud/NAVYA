@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="camera_view">Camera view</string>
+    <string name="initializing_camera">Initializing camera…</string>
+    <string name="camera_unavailable">Camera unavailable</string>
+</resources>
