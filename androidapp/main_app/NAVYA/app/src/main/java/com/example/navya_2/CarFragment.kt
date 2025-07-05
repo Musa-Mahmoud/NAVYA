@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import androidx.core.view.isVisible
 
 class CarFragment : Fragment() {
 
@@ -37,7 +38,7 @@ class CarFragment : Fragment() {
         stopBlinking()
         blinkJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
-                view.visibility = if (view.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                view.visibility = if (view.isVisible) View.GONE else View.VISIBLE
                 delay(500)
             }
         }
@@ -62,25 +63,25 @@ class CarFragment : Fragment() {
         dangerPlayer = null
     }
 
-    private fun handleStateChange(state: String?) {
+    private fun handleStateChange(state: Int) {
         stopStateBlinking()
 
         when (state) {
-            "safe" -> {
+            DistanceState.FAR -> {
                 carSafe.visibility = View.VISIBLE
             }
-            "medium" -> {
+            DistanceState.NEAR -> {
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
-                        carMedium.visibility = if (carMedium.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                        carMedium.visibility = if (carMedium.isVisible) View.GONE else View.VISIBLE
                         delay(500)
                     }
                 }
             }
-            "danger" -> {
+            DistanceState.CLOSE -> {
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
-                        carDanger.visibility = if (carDanger.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                        carDanger.visibility = if (carDanger.isVisible) View.GONE else View.VISIBLE
                         delay(500)
                     }
                 }
@@ -92,13 +93,22 @@ class CarFragment : Fragment() {
         }
     }
 
-    private val preferenceListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == SharedState.KEY_STATE) {
-                val state = prefs.getString(SharedState.KEY_STATE, null)
+    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        when (key) {
+            SharedState.KEY_DISTANCE_SAFETY_STATE -> {
+                val state = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
                 handleStateChange(state)
             }
+            SharedState.KEY_SWITCH_STATE -> {
+                val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_INVALID)
+                when (switchState) {
+                    SwitchState.SWITCH_LEFT -> startBlinking(carLeft)
+                    SwitchState.SWITCH_RIGHT -> startBlinking(carRight)
+                    else -> stopBlinking()
+                }
+            }
         }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -123,7 +133,7 @@ class CarFragment : Fragment() {
         buttonRight.setOnClickListener { startBlinking(carRight) }
         buttonOff.setOnClickListener { stopBlinking() }
 
-        val initialState = prefs.getString(SharedState.KEY_STATE, null)
+        val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
         handleStateChange(initialState)
 
         return view

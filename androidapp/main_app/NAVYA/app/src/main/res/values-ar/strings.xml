@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">نافيا</string>
+    <string name="hello_blank_fragment">أهلا بك؛ شاشة فارغة</string>
+    <string name="camera_view">منطقة الكاميرا</string>
+    <string name="initializing_camera">جاري تشغيل الكاميرا…</string>
+    <string name="camera_unavailable">الكاميرا غير متاحة</string>
+</resources>
