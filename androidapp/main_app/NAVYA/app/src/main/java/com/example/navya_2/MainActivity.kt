@@ -1,10 +1,10 @@
 package com.example.navya_2
 
 import android.os.Bundle
+import android.view.View
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -12,6 +12,7 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
+        // Load your main functional fragments
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container_view, CarFragment())
             .commit()
@@ -19,11 +20,35 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.camera_feed_fragment_container, CameraFeedFragment())
             .commit()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.square_fragment_container_1, VoskFragment())
-            .commit()
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.square_fragment_container_2, AmbientLight())
-            .commit()}
+
+
+        // Ambient icon is now handled via ImageButton, not a fragment
+        val ambientButton = findViewById<ImageButton>(R.id.ambient_light_button)
+        ambientButton.setOnClickListener {
+            val dialog = AmbientLight.newInstance()
+            dialog.show(supportFragmentManager, "AmbientLightDialog")
+        }
+
+        val micButton = findViewById<ImageButton>(R.id.voice_mic_button)
+        micButton.setOnClickListener {
+            val dialog = VoskDialogFragment()
+            dialog.show(supportFragmentManager, "VoskDialog")
+        }
+
+        hideSystemBars()
+    }
+
+    private fun hideSystemBars() {
+        if (packageManager.hasSystemFeature("android.hardware.type.automotive")) {
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
+        }
+    }
 }

@@ -1,0 +1,22 @@
+<!-- res/drawable/rounded_preview.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Background color -->
+    <solid android:color="#FFFFFF" /> <!-- or use @color/your_color -->
+
+    <!-- Rounded corners -->
+    <corners android:radius="16dp" />
+
+    <!-- Optional: Border -->
+    <stroke
+        android:width="2dp"
+        android:color="#CCCCCC" /> <!-- optional gray border -->
+
+    <!-- Optional: Padding (inside drawable) -->
+    <padding
+        android:left="4dp"
+        android:top="4dp"
+        android:right="4dp"
+        android:bottom="4dp" />
+</shape>
