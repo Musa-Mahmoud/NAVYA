@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">NAVYA_2</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
     <string name="title_text">hi</string>
     <string name="hint_text">\nhihi</string>
     <string name="toggle_button_description">Toggle BUtton\n</string>
@@ -12,5 +12,10 @@
     <!-- Ambient Light -->
     <string name="ambient_light">Ambient Light</string>
     <string name="close">Close</string>
+
+
+    <string name="camera_view">Camera view</string>
+    <string name="initializing_camera">Initializing camera…</string>
+    <string name="camera_unavailable">Camera unavailable</string>
 
 </resources>
