@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageButton
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -22,13 +25,34 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        hideSystemBars()
+
+        // Load your main functional fragments
+
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container_view, CarFragment())
             .commit()
         supportFragmentManager.beginTransaction()
             .replace(R.id.camera_feed_fragment_container, CameraFeedFragment())
             .commit()
+
+
+
+        // Ambient icon is now handled via ImageButton, not a fragment
+        val ambientButton = findViewById<ImageButton>(R.id.ambient_light_button)
+        ambientButton.setOnClickListener {
+            val dialog = AmbientLight.newInstance()
+            dialog.show(supportFragmentManager, "AmbientLightDialog")
+        }
+
+        val micButton = findViewById<ImageButton>(R.id.voice_mic_button)
+        micButton.setOnClickListener {
+            val dialog = VoskDialogFragment()
+            dialog.show(supportFragmentManager, "VoskDialog")
+        }
+
+        hideSystemBars()
+
         supportFragmentManager.beginTransaction()
             .replace(R.id.square_fragment_container_1, VoskFragment())
             .commit()

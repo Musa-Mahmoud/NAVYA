@@ -7,71 +7,83 @@
     android:background="@drawable/fragment_background_rounded">
 
     <!-- Base car image -->
+
+    <ImageView
+        android:id="@+id/car_shadow_background"
+        android:layout_width="400dp"
+        android:layout_height="300dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/oval_glow"
+                android:alpha="0.7"/>
+
     <ImageView
         android:id="@+id/car_main"
         android:layout_width="400dp"
-        android:layout_height="200dp"
+        android:layout_height="300dp"
         android:src="@drawable/car_main"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="32dp" />
+
 
     <!-- Safe image -->
     <ImageView
         android:id="@+id/car_safe"
-        android:layout_width="100dp"
-        android:layout_height="50dp"
+        android:layout_width="240dp"
+        android:layout_height="120dp"
         android:src="@drawable/safe"
         android:layout_gravity="center"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="110dp"
         android:visibility="gone" />
 
     <!-- Medium image -->
     <ImageView
         android:id="@+id/car_medium"
-        android:layout_width="100dp"
-        android:layout_height="50dp"
+        android:layout_width="240dp"
+        android:layout_height="120dp"
         android:src="@drawable/medium"
         android:layout_gravity="center"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="110dp"
         android:visibility="gone" />
 
     <!-- Danger image -->
     <ImageView
         android:id="@+id/car_danger"
-        android:layout_width="100dp"
-        android:layout_height="50dp"
+        android:layout_width="240dp"
+        android:layout_height="120dp"
         android:src="@drawable/danger"
         android:layout_gravity="center"
-        android:layout_marginTop="70dp"
+        android:layout_marginTop="110dp"
         android:visibility="gone" />
 
     <!-- Shadow overlay -->
     <ImageView
         android:id="@+id/car_shadow"
         android:layout_width="400dp"
-        android:layout_height="200dp"
+        android:layout_height="300dp"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="16dp"
-        android:src="@drawable/car_shadow" />
+        android:layout_marginTop="32dp"
+        android:src="@drawable/car_shadow"
+        android:visibility="gone"/>
 
     <!-- Left signal overlay -->
     <ImageView
         android:id="@+id/car_left"
         android:layout_width="400dp"
-        android:layout_height="200dp"
+        android:layout_height="300dp"
         android:src="@drawable/car_left"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:visibility="gone" />
 
     <!-- Right signal overlay -->
     <ImageView
         android:id="@+id/car_right"
         android:layout_width="400dp"
-        android:layout_height="200dp"
+        android:layout_height="300dp"
         android:src="@drawable/car_right"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:visibility="gone" />
 
     <!-- Left MaterialButton -->

@@ -9,13 +9,13 @@
     <!-- NAVYA logo at top center -->
     <ImageView
         android:id="@+id/navya_logo"
-        android:layout_width="129dp"
-        android:layout_height="32dp"
+        android:layout_width="110dp"
+        android:layout_height="28dp"
         android:src="@drawable/navya_logo"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="12dp" />
 
     <!-- Left Fragment Container (CarFragment) -->
     <FrameLayout
@@ -24,9 +24,9 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/navya_logo"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintWidth_percent="0.4"
-        android:layout_margin="16dp" />
+        app:layout_constraintBottom_toTopOf="@id/ambient_light_button"
+        app:layout_constraintWidth_percent="0.35"
+        android:layout_margin="12dp" />
 
     <!-- Rounded Rectangle Parent for the right fragments -->
     <FrameLayout
@@ -36,49 +36,56 @@
         android:background="@drawable/rounded_rectangle_background"
         app:layout_constraintTop_toBottomOf="@id/navya_logo"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/ambient_light_button"
         app:layout_constraintStart_toEndOf="@id/fragment_container_view"
-        android:layout_margin="16dp">
+        android:layout_margin="12dp">
 
-        <!-- Vertical LinearLayout -->
+        <!-- Vertical LinearLayout for right fragments -->
         <LinearLayout
             android:id="@+id/right_fragment_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="10dp">
+            android:padding="8dp">
 
-            <!-- Camera Feed Fragment (full width) -->
+            <!-- Camera Feed Fragment -->
             <FrameLayout
                 android:id="@+id/camera_feed_fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
-                android:layout_marginBottom="8dp" />
+                android:layout_marginBottom="6dp" />
 
-            <!-- Horizontal row with two smaller fragments -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <FrameLayout
-                    android:id="@+id/square_fragment_container_1"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp" />
-
-                <FrameLayout
-                    android:id="@+id/square_fragment_container_2"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp" />
-
-            </LinearLayout>
+            <!-- Space for additional fragments or indicators if needed -->
         </LinearLayout>
     </FrameLayout>
+
+    <!-- Ambient Light Icon Button centered at Bottom -->
+    <ImageButton
+        android:id="@+id/voice_mic_button"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/ic_micsvg"
+        android:background="@drawable/circular_button_background"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/ambient_light_button"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="20dp" />
+
+    <ImageButton
+        android:id="@+id/ambient_light_button"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:src="@drawable/ambient"
+        android:background="@drawable/circular_button_background"
+        android:contentDescription="@string/ambient_light"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/voice_mic_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="20dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

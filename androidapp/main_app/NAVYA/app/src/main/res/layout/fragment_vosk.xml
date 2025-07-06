@@ -1,19 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/rounded_dark_surface_light_bg"
-    tools:context=".VoskFragment">
+    android:background="@color/dark_surface_light"
+    android:padding="8dp">
 
+    <!-- Title Text -->
     <TextView
+        android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vosk Fragment"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
+        android:text="@string/title_text"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:layout_gravity="center"/>
+        android:textColor="@color/white"
+        android:shadowColor="@color/black"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="4"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
 
-</FrameLayout>
+    <!-- Hint Text -->
+    <TextView
+        android:id="@+id/hint_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hint_text"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        android:textColor="@color/dark_surface_lighter"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Waveform View -->
+    <com.example.navya_2.WaveformView
+        android:id="@+id/waveform_view"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
+        android:background="@color/dark_surface_lighter"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/hint_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/recognized_text_container"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp" />
+
+    <!-- Recognized Text Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/recognized_text_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/dark_surface_light"
+        app:layout_constraintTop_toBottomOf="@id/waveform_view"
+        app:layout_constraintBottom_toTopOf="@id/toggle_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.5"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:id="@+id/recognized_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:visibility="gone" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Toggle Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/toggle_button"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/toggle_button_description"
+        app:icon="@drawable/ic_micsvg"
+        app:iconTint="@color/button_text"
+        app:iconPadding="0dp"
+        android:background="@color/main_background"
+        app:backgroundTint="@null"
+        app:cornerRadius="30dp"
+        app:rippleColor="@color/button_pressed"
+        style="@style/Widget.App.Button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp"
+        android:elevation="6dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
