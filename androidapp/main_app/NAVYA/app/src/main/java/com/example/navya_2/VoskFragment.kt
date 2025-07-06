@@ -7,21 +7,22 @@ import android.car.Car
 import android.car.hardware.property.CarPropertyManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.AssetManager
 import android.graphics.*
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
-import android.widget.Button
+import android.view.animation.LinearInterpolator
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -32,12 +33,16 @@ import org.vosk.Recognizer
 import org.vosk.android.RecognitionListener
 import org.vosk.android.SpeechService
 import org.vosk.android.StorageService
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 
 // Enum to manage UI display states
 enum class DisplayState {
-    Idle, Listening, Text
+    Idle, Listening, PlayingSound, Text
 }
 
 // Manager class for VHAL operations
@@ -86,7 +91,6 @@ class VhalManager(private val context: Context) {
     }
 }
 
-// ViewModel to manage voice recognition data and state
 class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
     private val _recognizedText = MutableLiveData("")
     val recognizedText: LiveData<String> = _recognizedText
@@ -100,7 +104,7 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
     private val stopPhrases = listOf(
         "hi navya", "light on", "light off", "ac on", "ac off", "ac of", "stop",
         "temperature down", "left camera", "right camera", "hi veachle",
-        "hello car", "hello navya", "hello veachle", "temperature up", "hi", "hello"
+        "hello car", "hello navya", "hello vehicle", "temperature up", "hi", "hello"
     )
 
     private var mediaPlayer: MediaPlayer? = null
@@ -111,7 +115,7 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
 
         Log.d(TAG, "Normalized text: $normalized")
 
-        if (state == DisplayState.Listening || state == DisplayState.Text) {
+        if (state == DisplayState.Listening || state == DisplayState.Text || state == DisplayState.PlayingSound) {
             _recognizedText.value = recognized
         } else {
             _recognizedText.value = text
@@ -119,7 +123,7 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
 
         if ((state == DisplayState.Listening || state == DisplayState.Text) && stopPhrases.contains(normalized)) {
             _isListening.value = false
-            _displayState.value = DisplayState.Text
+            _displayState.value = DisplayState.PlayingSound
             when (normalized) {
                 "ac on" -> {
                     vhalManager?.setAcStatus(1)
@@ -143,16 +147,22 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
                     vhalManager?.setAcStatus(1)
                     playSound(R.raw.light_on)
                 }
-                "hi car", "hello car", "hi veachle" -> {
+                "hi car", "hello car", "hi vehicle","hello","hi" -> {
                     playSound(R.raw.hey_car)
                 }
                 "stop" -> {
-                    // No sound specified
+                    _displayState.value = DisplayState.Text // No sound, transition directly
                 }
-                "right camera" -> {
+                "right camera on" -> {
                     playSound(R.raw.right_camera)
                 }
-                "left camera" -> {
+                "right camera off" , "right camera of" -> {
+                    playSound(R.raw.right_camera)
+                }
+                "left camera on" -> {
+                    playSound(R.raw.left_camera)
+                }
+                "left camera off","left camera of" -> {
                     playSound(R.raw.left_camera)
                 }
                 "danger wa" -> {
@@ -173,10 +183,13 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
             mediaPlayer?.setOnCompletionListener {
                 it.release()
                 mediaPlayer = null
+                _displayState.value = DisplayState.Text
+                Log.d(TAG, "Sound playback completed, transitioning to Text state")
             }
             mediaPlayer?.start()
             Log.d(TAG, "Playing sound resource: $resourceId")
         } catch (e: Exception) {
+            _displayState.value = DisplayState.Text
             Log.e(TAG, "Error playing sound: ${e.message}")
         }
     }
@@ -194,6 +207,7 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
     }
 
     private fun extractRecognizedText(result: String): String {
+        Log.d(TAG, "Raw hypothesis: $result")
         val regex = Regex("\"(?:text|partial)\"\\s*:\\s*\"([^\"]*)\"")
         return regex.find(result)?.groupValues?.get(1)?.trim() ?: ""
     }
@@ -207,42 +221,57 @@ class NavyaVoiceViewModel(private val context: Context) : ViewModel() {
 
     companion object {
         private const val TAG = "NavyaVoiceViewModel"
+        class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                if (modelClass.isAssignableFrom(NavyaVoiceViewModel::class.java)) {
+                    @Suppress("UNCHECKED_CAST")
+                    return NavyaVoiceViewModel(context) as T
+                }
+                throw IllegalArgumentException("Unknown ViewModel class")
+            }
+        }
     }
 }
 
-// Custom View for displaying animated waveform
 class WaveformView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
+
     private val waveCount = 20
-    private val amplitudes = FloatArray(waveCount) { 0f }
-    private val phaseShift = FloatArray(waveCount) { 0f }
+    private val amplitudes = FloatArray(waveCount) { Random.nextFloat() } // ✅ Initial values
+    private val phaseShifts = FloatArray(waveCount) { Random.nextFloat() * 2f * Math.PI.toFloat() }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        strokeWidth = 8f
+        strokeWidth = 6f
+        color = Color.GREEN // fallback color
         isAntiAlias = true
     }
+
     private val gradientColors = intArrayOf(
-        ContextCompat.getColor(context, R.color.black),
+        ContextCompat.getColor(context, R.color.dark_surface_lighter),
         ContextCompat.getColor(context, R.color.white)
     )
 
     private val animators = List(waveCount) { index ->
         ValueAnimator.ofFloat(0f, 1f).apply {
             duration = (600 + Random.nextInt(400)).toLong()
-            startDelay = index * 20L
+            startDelay = index * 30L
             repeatCount = ValueAnimator.INFINITE
             repeatMode = ValueAnimator.REVERSE
-            interpolator = android.view.animation.LinearInterpolator()
+            interpolator = LinearInterpolator()
             addUpdateListener {
                 amplitudes[index] = it.animatedValue as Float
-                phaseShift[index] += 0.05f
+                phaseShifts[index] += 0.04f
                 invalidate()
             }
         }
+    }
+
+    init {
+        setLayerType(LAYER_TYPE_SOFTWARE, null) // ✅ avoid passing Paint
     }
 
     override fun onAttachedToWindow() {
@@ -255,126 +284,98 @@ class WaveformView @JvmOverloads constructor(
         animators.forEach { it.cancel() }
     }
 
-    @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val width = width.toFloat()
-        val height = height.toFloat()
-        val centerY = height / 2f
-        val maxAmplitude = height * 0.3f
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0 || h <= 0) return
 
-        paint.setShadowLayer(10f, 0f, 4f, Color.argb(80, 0, 0, 0))
-        setLayerType(LAYER_TYPE_SOFTWARE, paint)
+        val centerY = h / 2f
+        val maxAmp = h * 0.3f
 
-        val shader = LinearGradient(
-            0f, 0f, width, 0f,
-            gradientColors,
-            null,
+        paint.shader = LinearGradient(
+            0f, 0f, w, 0f,
+            gradientColors, null,
             Shader.TileMode.CLAMP
         )
-        paint.shader = shader
 
-        val path = Path()
-        val step = width / waveCount
-        path.moveTo(0f, centerY)
-
-        for (i in 0 until waveCount) {
-            val x = i * step
-            val amplitude = maxAmplitude * amplitudes[i]
-            val y = centerY + amplitude * sin(phaseShift[i].toDouble() + (x / width * 2 * Math.PI)).toFloat()
-            if (i == 0) {
-                path.moveTo(x, y)
-            } else {
-                path.lineTo(x, y)
+        val path = Path().apply {
+            moveTo(0f, centerY)
+            val step = w / (waveCount - 1)
+            for (i in 0 until waveCount) {
+                val x = i * step
+                val amp = maxAmp * amplitudes[i]
+                val y = centerY + amp * sin(phaseShifts[i] + (x / w * 2 * PI.toFloat()))
+                lineTo(x, y)
             }
+            lineTo(w, h)
+            lineTo(0f, h)
+            close()
         }
-
-        path.lineTo(width, centerY)
-        path.lineTo(width, height)
-        path.lineTo(0f, height)
-        path.close()
 
         canvas.drawPath(path, paint)
     }
 }
-
-// Fragment to display voice recognition UI
-class VoskDialogFragment : DialogFragment(), RecognitionListener {
+class VoskDialogFragment : Fragment(), RecognitionListener {
     private var model: Model? = null
     private var speechService: SpeechService? = null
     private var vhalManager: VhalManager? = null
-    private val viewModel: NavyaVoiceViewModel by viewModels { ViewModelFactory(requireContext().applicationContext) }
+    private val viewModel: NavyaVoiceViewModel by activityViewModels { AppViewModelFactory }
+
+
 
     private lateinit var titleText: TextView
-    private lateinit var hintText: TextView
     private lateinit var waveformView: WaveformView
     private lateinit var recognizedTextView: TextView
-    private lateinit var toggleButton: Button
 
     companion object {
         private const val TAG = "VoskFragment"
-    }
-
-    class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(NavyaVoiceViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return NavyaVoiceViewModel(context) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        Log.d(TAG, "onCreateView called")
         val view = inflater.inflate(R.layout.fragment_vosk, container, false)
 
-        // Initialize views
         titleText = view.findViewById(R.id.title_text)
-        hintText = view.findViewById(R.id.hint_text)
         waveformView = view.findViewById(R.id.waveform_view)
         recognizedTextView = view.findViewById(R.id.recognized_text)
-        toggleButton = view.findViewById(R.id.toggle_button)
 
-        // Initialize VHAL manager
         vhalManager = VhalManager(requireContext())
-
-        // Set up button click listener
-        toggleButton.setOnClickListener { viewModel.toggleListening() }
-
-        // Observe LiveData
         viewModel.isListening.observe(viewLifecycleOwner) { isListening ->
+            Log.d(TAG, "isListening changed: $isListening")
             if (isListening) {
                 startRecognition()
-                toggleButton.setBackgroundResource(R.drawable.button_red_background)
-                toggleButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_stop, 0, 0, 0)
-                toggleButton.animate().scaleX(1.2f).scaleY(1.2f).setDuration(200).start()
+                Log.d(TAG, "Starting recognition")
             } else {
                 speechService?.stop()
-                toggleButton.setBackgroundResource(R.drawable.button_primary_background)
-                toggleButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_micsvg, 0, 0, 0)
-                toggleButton.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
                 Log.d(TAG, "SpeechService stopped")
             }
         }
 
         viewModel.displayState.observe(viewLifecycleOwner) { state ->
+            Log.d(TAG, "DisplayState changed: $state")
             when (state) {
                 DisplayState.Idle -> {
-                    hintText.visibility = View.VISIBLE
                     waveformView.visibility = View.GONE
                     recognizedTextView.visibility = View.GONE
                 }
                 DisplayState.Listening -> {
-                    hintText.visibility = View.GONE
                     waveformView.visibility = View.VISIBLE
                     recognizedTextView.visibility = View.GONE
+                    waveformView.invalidate()
+                    Log.d(TAG, "asasfasf changed: $state")
+
+                }
+                DisplayState.PlayingSound -> {
+                    waveformView.visibility = View.VISIBLE
+                    recognizedTextView.visibility = if (viewModel.recognizedText.value?.isNotBlank() == true) View.VISIBLE else View.GONE
+                    waveformView.invalidate()
                 }
                 DisplayState.Text -> {
-                    hintText.visibility = View.GONE
                     waveformView.visibility = View.GONE
                     recognizedTextView.visibility = if (viewModel.recognizedText.value?.isNotBlank() == true) View.VISIBLE else View.GONE
                 }
@@ -382,8 +383,9 @@ class VoskDialogFragment : DialogFragment(), RecognitionListener {
         }
 
         viewModel.recognizedText.observe(viewLifecycleOwner) { text ->
+            Log.d(TAG, "Recognized text: $text")
             recognizedTextView.text = text
-            if (viewModel.isStopPhrase(text) && viewModel.displayState.value == DisplayState.Text) {
+            if (viewModel.isStopPhrase(text) && (viewModel.displayState.value == DisplayState.Text || viewModel.displayState.value == DisplayState.PlayingSound)) {
                 val glow = AlphaAnimation(0f, 0.5f).apply {
                     duration = 300
                     setAnimationListener(object : Animation.AnimationListener {
@@ -403,21 +405,9 @@ class VoskDialogFragment : DialogFragment(), RecognitionListener {
         return view
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.window?.apply {
-            setLayout(
-                (resources.displayMetrics.widthPixels * 0.85).toInt(),
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setGravity(Gravity.CENTER)
-            setBackgroundDrawableResource(R.drawable.rounded_rectangle_background)
-            setDimAmount(0.5f)
-        }
-    }
-
     private fun checkPermissionAndInit() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "Requesting RECORD_AUDIO permission")
             requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 1)
         } else {
             initModel()
@@ -431,6 +421,7 @@ class VoskDialogFragment : DialogFragment(), RecognitionListener {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "RECORD_AUDIO permission granted")
             initModel()
         } else {
             viewModel.updateRecognizedText("Permission denied", DisplayState.Text, vhalManager)
@@ -438,20 +429,55 @@ class VoskDialogFragment : DialogFragment(), RecognitionListener {
         }
     }
 
-    private fun initModel() {
-        StorageService.unpack(
-            requireContext(),
-            "vosk-model-small-en-us-0.15",
-            "model",
-            { unpacked ->
-                model = unpacked
-                Log.d(TAG, "Model loaded successfully")
-            },
-            { e ->
-                viewModel.updateRecognizedText("Model unpack failed: ${e.message}", DisplayState.Text, vhalManager)
-                Log.e(TAG, "Model unpack error: ${e.message}")
+    private fun unpackModelToInternal(context: Context, modelName: String) {
+        val assetManager = context.assets
+        val modelDir = File(context.filesDir, modelName)
+        if (!modelDir.exists()) {
+            try {
+                modelDir.mkdirs()
+                copyAssetFolder(assetManager, modelName, modelDir.absolutePath)
+                Log.d(TAG, "Model unpacked to ${modelDir.absolutePath}")
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to unpack model: ${e.message}")
+                viewModel.updateRecognizedText("Failed to unpack model: ${e.message}", DisplayState.Text, vhalManager)
             }
-        )
+        }
+    }
+
+    private fun copyAssetFolder(assetManager: AssetManager, srcPath: String, dstPath: String) {
+        try {
+            val files = assetManager.list(srcPath) ?: return
+            val dstDir = File(dstPath)
+            dstDir.mkdirs()
+            for (fileName in files) {
+                val srcFilePath = if (srcPath.isEmpty()) fileName else "$srcPath/$fileName"
+                val dstFilePath = File(dstDir, fileName)
+                val subFiles = assetManager.list(srcFilePath)
+                if (subFiles?.isNotEmpty() == true) {
+                    copyAssetFolder(assetManager, srcFilePath, dstFilePath.absolutePath)
+                } else {
+                    assetManager.open(srcFilePath).use { inputStream ->
+                        FileOutputStream(dstFilePath).use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                }
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to copy asset folder $srcPath: ${e.message}")
+        }
+    }
+
+    private fun initModel() {
+        val modelPath = File(requireContext().filesDir, "vosk-model-small-en-us-0.15").absolutePath
+        unpackModelToInternal(requireContext(), "vosk-model-small-en-us-0.15")
+        try {
+            model = Model(modelPath)
+            Log.d(TAG, "Model loaded successfully from $modelPath")
+        } catch (e: IOException) {
+            Log.e(TAG, "Model initialization failed: ${e.message}")
+            viewModel.updateRecognizedText("Model initialization failed: ${e.message}", DisplayState.Text, vhalManager)
+        }
     }
 
     private fun startRecognition() {

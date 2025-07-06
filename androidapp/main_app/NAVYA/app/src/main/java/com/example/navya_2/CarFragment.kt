@@ -81,15 +81,15 @@ class CarFragment : Fragment() {
     private fun handleStateChange(state: Int) {
         stopStateBlinking()
         when (state) {
-
-            "safe" -> carSafe.visibility = View.VISIBLE
-            "medium" -> {
-
             DistanceState.FAR -> {
                 carSafe.visibility = View.VISIBLE
+                carMedium.visibility = View.GONE
+                carDanger.visibility = View.GONE
             }
             DistanceState.NEAR -> {
-
+                carSafe.visibility = View.GONE
+                carMedium.visibility = View.VISIBLE
+                carDanger.visibility = View.GONE
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
                         carMedium.visibility = if (carMedium.isVisible) View.GONE else View.VISIBLE
@@ -98,6 +98,9 @@ class CarFragment : Fragment() {
                 }
             }
             DistanceState.CLOSE -> {
+                carSafe.visibility = View.GONE
+                carMedium.visibility = View.GONE
+                carDanger.visibility = View.VISIBLE
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
                         carDanger.visibility = if (carDanger.isVisible) View.GONE else View.VISIBLE
@@ -111,7 +114,6 @@ class CarFragment : Fragment() {
         }
     }
 
-
     private fun applyGlowColor(color: Int) {
         glowView.setColorFilter(color)
         glowAnimator?.cancel()
@@ -123,16 +125,6 @@ class CarFragment : Fragment() {
             start()
         }
     }
-
-    private val preferenceListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == SharedState.KEY_STATE) {
-                val state = prefs.getString(SharedState.KEY_STATE, null)
-                handleStateChange(state)
-            }
-            if (key == SharedState.KEY_AMBIENT_COLOR) {
-                val color = prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN)
-                applyGlowColor(color)
 
     private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         when (key) {
@@ -147,14 +139,17 @@ class CarFragment : Fragment() {
                     SwitchState.SWITCH_RIGHT -> startBlinking(carRight)
                     else -> stopBlinking()
                 }
-
+            }
+            SharedState.KEY_AMBIENT_COLOR -> {
+                val color = prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN)
+                applyGlowColor(color)
             }
         }
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View {
         val view = inflater.inflate(R.layout.fragment_car, container, false)
 
@@ -168,21 +163,9 @@ class CarFragment : Fragment() {
         carMedium = view.findViewById(R.id.car_medium)
         carDanger = view.findViewById(R.id.car_danger)
 
-        buttonLeft = view.findViewById(R.id.button_left)
-        buttonRight = view.findViewById(R.id.button_right)
-        buttonOff = view.findViewById(R.id.button_off)
-
-        buttonLeft.setOnClickListener { startBlinking(carLeft) }
-        buttonRight.setOnClickListener { startBlinking(carRight) }
-        buttonOff.setOnClickListener { stopBlinking() }
-
-
-        handleStateChange(prefs.getString(SharedState.KEY_STATE, null))
-        applyGlowColor(prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN))
-
-        val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
+            val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
         handleStateChange(initialState)
-
+        applyGlowColor(prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN))
 
         return view
     }

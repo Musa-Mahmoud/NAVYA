@@ -67,7 +67,6 @@ class AmbientLight : DialogFragment() {
                     else -> DangerLevel.SAFE
                 }
                 updateDangerLevel(level)
-
             } else {
                 Log.e(TAG, "Failed to connect to Car service")
             }
@@ -151,16 +150,19 @@ class AmbientLight : DialogFragment() {
         }
     }
 
-    fun updateDangerLevel(level: DangerLevel) {
+    private fun updateDangerLevel(level: DangerLevel) {
         currentDangerLevel = level
         Log.d(TAG, "Danger level changed to: $level")
         when (level) {
             DangerLevel.SAFE -> setVhalProperty(userPickedColor)
-            DangerLevel.MEDIUM -> {val packedColor = (100 shl 24) or (0 shl 16) or (255 shl 8) or 255
-                ; setVhalProperty(packedColor)}
+            DangerLevel.MEDIUM -> {
+                val packedColor = (brightness shl 24) or (0 shl 16) or (255 shl 8) or 255
+                setVhalProperty(packedColor)
+            }
             DangerLevel.DANGER -> {
-                val packedColor = (100 shl 24) or (0 shl 16) or (0 shl 8) or 255
-                ; setVhalProperty(packedColor)}
+                val packedColor = (brightness shl 24) or (0 shl 16) or (0 shl 8) or 255
+                setVhalProperty(packedColor)
+            }
         }
     }
 

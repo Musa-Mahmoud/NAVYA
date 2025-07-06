@@ -11,7 +11,7 @@
     <ImageView
         android:id="@+id/car_shadow_background"
         android:layout_width="400dp"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp"
         android:src="@drawable/oval_glow"
@@ -20,7 +20,7 @@
     <ImageView
         android:id="@+id/car_main"
         android:layout_width="400dp"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:src="@drawable/car_main"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp" />
@@ -29,38 +29,38 @@
     <!-- Safe image -->
     <ImageView
         android:id="@+id/car_safe"
-        android:layout_width="240dp"
-        android:layout_height="120dp"
+        android:layout_width="220dp"
+        android:layout_height="110dp"
         android:src="@drawable/safe"
         android:layout_gravity="center"
-        android:layout_marginTop="110dp"
+        android:layout_marginTop="130dp"
         android:visibility="gone" />
 
     <!-- Medium image -->
     <ImageView
         android:id="@+id/car_medium"
-        android:layout_width="240dp"
-        android:layout_height="120dp"
+        android:layout_width="220dp"
+        android:layout_height="110dp"
         android:src="@drawable/medium"
         android:layout_gravity="center"
-        android:layout_marginTop="110dp"
+        android:layout_marginTop="130dp"
         android:visibility="gone" />
 
     <!-- Danger image -->
     <ImageView
         android:id="@+id/car_danger"
-        android:layout_width="240dp"
-        android:layout_height="120dp"
+        android:layout_width="220dp"
+        android:layout_height="110dp"
         android:src="@drawable/danger"
         android:layout_gravity="center"
-        android:layout_marginTop="110dp"
+        android:layout_marginTop="130dp"
         android:visibility="gone" />
 
     <!-- Shadow overlay -->
     <ImageView
         android:id="@+id/car_shadow"
         android:layout_width="400dp"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp"
         android:src="@drawable/car_shadow"
@@ -70,7 +70,7 @@
     <ImageView
         android:id="@+id/car_left"
         android:layout_width="400dp"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:src="@drawable/car_left"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp"
@@ -80,48 +80,11 @@
     <ImageView
         android:id="@+id/car_right"
         android:layout_width="400dp"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:src="@drawable/car_right"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp"
         android:visibility="gone" />
 
-    <!-- Left MaterialButton -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_left"
-        android:layout_width="60dp"
-        android:layout_height="36dp"
-        android:layout_gravity="bottom|start"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="Left"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#333333"
-        app:cornerRadius="8dp" />
-
-    <!-- Off MaterialButton -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_off"
-        android:layout_width="60dp"
-        android:layout_height="36dp"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:text="Off"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#333333"
-        app:cornerRadius="8dp" />
-
-    <!-- Right MaterialButton -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_right"
-        android:layout_width="60dp"
-        android:layout_height="36dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="Right"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#333333"
-        app:cornerRadius="8dp" />
 
 </FrameLayout>

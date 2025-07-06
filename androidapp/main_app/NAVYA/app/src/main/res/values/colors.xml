@@ -8,7 +8,7 @@
     <color name="dark_surface_lighter">#4A4A4A</color> <!-- Noticeably lighter -->
     <color name="button_background">#333333</color>
     <color name="button_pressed">#555555</color>
-
+    <!-- Or a light blue -->
 
 
     <color name="ripple_color">#33FFFFFF</color> <!-- semi-transparent white -->

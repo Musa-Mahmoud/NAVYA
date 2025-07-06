@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/fragment_background"
-    android:padding="12dp">
+    android:padding="24dp"
+    android:clipToPadding="false">
 
     <!-- Brightness Label -->
     <TextView
@@ -13,12 +14,16 @@
         android:layout_height="wrap_content"
         android:text="Brightness"
         android:textColor="@android:color/white"
-        android:textSize="22sp"
+        android:textSize="18sp"
         android:textStyle="bold"
+        android:letterSpacing="0.02"
+        android:fontFamily="sans-serif-medium"
+        android:contentDescription="Brightness adjustment label"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginStart="8dp" />
+        android:paddingBottom="4dp" />
 
     <!-- Horizontal Slider -->
     <com.google.android.material.slider.Slider
@@ -29,39 +34,54 @@
         android:valueTo="100"
         android:stepSize="1"
         android:value="50"
+        android:contentDescription="Adjust brightness level"
         app:layout_constraintTop_toBottomOf="@id/brightnessLabel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="12dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        style="@style/VolumeSliderStyle" />
+        style="@style/VolumeSliderStyle"
+        app:trackHeight="8dp"
+        app:thumbRadius="12dp"
+        app:thumbElevation="4dp"
+        app:haloRadius="20dp"
+        app:thumbColor="@color/white"
+        app:trackColorActive="@color/dark_surface_lighter"
+        app:trackColorInactive="@color/dark_surface_light"
+        android:transitionName="brightnessSliderTransition" />
 
-    <!-- Color Picker View -->
+    <!-- Color Picker View (no invalid attribute) -->
     <com.skydoves.colorpickerview.ColorPickerView
         android:id="@+id/colorPickerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:contentDescription="Select a color"
+        android:background="@drawable/rounded_palette"
         app:layout_constraintTop_toBottomOf="@id/brightnessSlider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.65"
-        app:layout_constraintWidth_percent="1.0"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="16dp" />
+        app:layout_constraintHeight_percent="0.55"
+        app:layout_constraintWidth_percent="0.92"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="20dp" />
 
     <!-- Color Preview Box -->
     <View
         android:id="@+id/color_preview"
         android:layout_width="0dp"
-        android:layout_height="40dp"
+        android:layout_height="52dp"
         android:background="@drawable/rounded_preview"
+        android:elevation="6dp"
+        android:contentDescription="@string/selected_color_preview"
         app:layout_constraintTop_toBottomOf="@id/colorPickerView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

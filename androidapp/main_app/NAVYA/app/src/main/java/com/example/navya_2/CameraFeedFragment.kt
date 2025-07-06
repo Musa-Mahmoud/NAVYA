@@ -41,8 +41,8 @@ class CameraFeedFragment : Fragment() {
     private lateinit var previewView: PreviewView
     private lateinit var instructionText: TextView
     private lateinit var objectDetector: ObjectDetectorHelper
-    private lateinit var car: Car
-    private lateinit var carPropertyManager: CarPropertyManager
+    private var car: Car? = null // Make nullable as it might fail to initialize
+    private var carPropertyManager: CarPropertyManager? = null // Make nullable
     private val cameraExecutor by lazy { Executors.newSingleThreadExecutor() }
     private var reusableBitmap: Bitmap? = null
     private var lastAnalysisTime = 0L
@@ -53,11 +53,12 @@ class CameraFeedFragment : Fragment() {
     private var currentSwitchState: Int = SwitchState.SWITCH_CENTER
 
     companion object {
+        private const val TAG = "CameraFeedFragment" // Add TAG for logging
         private const val DETECTION_INTERVAL = 100
         private const val CLOSE_DISTANCE = 5.0f
         private const val NEAR_DISTANCE = 15.0f
         private const val MODEL_THRESHOLD = 0.5f
-        private var FOCAL_LENGTH_PX = 270
+        private const val FOCAL_LENGTH_PX = 270
         private const val PROP_ID = 557842692
         private const val AREA_ID = 0
         val knownHeights = mapOf(
@@ -70,17 +71,23 @@ class CameraFeedFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        // This is fine, but ensure findCompatibleCamera doesn't block UI thread
+        // ProcessCameraProvider.getInstance().get() can block, so it's good it's in a coroutine.
         lifecycleScope.launch(Dispatchers.Default) {
-            findCompatibleCamera(ProcessCameraProvider.getInstance(requireContext()).get())
+            // No need to call findCompatibleCamera here, it's called in startCamera()
+            // This line can be removed or kept if you need to pre-check camera availability.
+            // findCompatibleCamera(ProcessCameraProvider.getInstance(requireContext()).get())
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         objectDetector = ObjectDetectorHelper(requireContext())
-        // Warm-up object detector in background
-        cameraExecutor.execute {
-            objectDetector.detect(createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888))
-        }
+        // REMOVE THE PROBLEMATIC LINE:
+        // cameraExecutor.execute {
+        //     objectDetector.detect(createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888))
+        // }
+        Log.d(TAG, "CameraFeedFragment onCreate: ObjectDetectorHelper initialized.")
     }
 
     override fun onCreateView(
@@ -95,7 +102,6 @@ class CameraFeedFragment : Fragment() {
 
         initializeCarService()
 
-        // Initialize with camera off
         instructionText.text = getString(R.string.camera_view)
         startSwitchPolling()
 
@@ -104,23 +110,26 @@ class CameraFeedFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        Log.d(TAG, "onDestroyView called.")
         stopCamera()
         stopSwitchPolling()
-        car.disconnect()
+        car?.disconnect() // Use safe call
         objectDetector.close()
         cameraExecutor.shutdown()
         reusableBitmap?.recycle()
+        reusableBitmap = null
     }
 
     private fun initializeCarService() {
         try {
             car = Car.createCar(requireContext())
-            carPropertyManager = car.getCarManager(Car.PROPERTY_SERVICE) as CarPropertyManager
+            carPropertyManager = car?.getCarManager(Car.PROPERTY_SERVICE) as? CarPropertyManager
+            Log.d("CarService", "Car service initialized successfully")
         } catch (e: Exception) {
             Log.e("CarService", "Failed to initialize car service", e)
             isSwitchActive = false
             currentSwitchState = SwitchState.SWITCH_INVALID
-            setCameraState(false)
+            setCameraState(false) // Set camera state to off if car service fails
         }
     }
 
@@ -129,9 +138,18 @@ class CameraFeedFragment : Fragment() {
         switchPollingJob = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
             while (isActive) {
                 try {
-                    val newState = readSwitchState()
-                    val newActiveState =
-                        newState == SwitchState.SWITCH_LEFT || newState == SwitchState.SWITCH_RIGHT
+                    // Ensure carPropertyManager is not null before reading state
+                    val newState = carPropertyManager?.let { manager ->
+                        try {
+                            val prop = manager.getProperty(Integer::class.java, PROP_ID, AREA_ID)
+                            prop.value.toInt()
+                        } catch (e: Exception) {
+                            Log.e("CarService", "Error reading switch property: ${e.message}", e)
+                            SwitchState.SWITCH_INVALID
+                        }
+                    } ?: SwitchState.SWITCH_INVALID // Default to invalid if manager is null
+
+                    val newActiveState = newState == SwitchState.SWITCH_LEFT || newState == SwitchState.SWITCH_RIGHT
                     Log.d("SwitchState", "New state: $newState")
 
                     if (newState != currentSwitchState) {
@@ -145,9 +163,9 @@ class CameraFeedFragment : Fragment() {
                             }
                         }
                     }
-                    delay(100) // Check every 100ms
+                    delay(100)
                 } catch (e: Exception) {
-                    Log.e("SwitchPolling", "Error reading switch", e)
+                    Log.e("SwitchPolling", "Error in switch polling loop: ${e.message}", e)
                 }
             }
         }
@@ -156,6 +174,7 @@ class CameraFeedFragment : Fragment() {
     private fun stopSwitchPolling() {
         switchPollingJob?.cancel("Stopping for lifecycle")
         switchPollingJob = null
+        Log.d(TAG, "Switch polling stopped.")
     }
 
     private fun handleSwitchActiveChange() {
@@ -163,15 +182,16 @@ class CameraFeedFragment : Fragment() {
         setCameraState(isSwitchActive)
     }
 
-    private fun readSwitchState(): Int {
-        return try {
-            val prop = carPropertyManager.getProperty(Integer::class.java, PROP_ID, AREA_ID)
-            prop.value.toInt()
-        } catch (e: Exception) {
-            Log.e("CarService", "Error reading switch", e)
-            SwitchState.SWITCH_INVALID
-        }
-    }
+    // This function is now redundant as its logic is integrated into startSwitchPolling
+    // private fun readSwitchState(): Int {
+    //     return try {
+    //         val prop = carPropertyManager.getProperty(Integer::class.java, PROP_ID, AREA_ID)
+    //         prop.value.toInt()
+    //     } catch (e: Exception) {
+    //         Log.e("CarService", "Error reading switch", e)
+    //         SwitchState.SWITCH_INVALID
+    //     }
+    // }
 
     fun setCameraState(isOn: Boolean) {
         if (isOn != isCameraOn) {
@@ -182,11 +202,13 @@ class CameraFeedFragment : Fragment() {
                 stopCamera()
                 instructionText.text = getString(R.string.camera_view)
             }
+            // Update shared preferences regardless of camera state change
             requireContext().getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
                 .edit {
                     putInt(SharedState.KEY_SWITCH_STATE, currentSwitchState)
                     putInt(SharedState.KEY_DISTANCE_SAFETY_STATE, getDistanceState(closestDistance))
                 }
+            Log.d(TAG, "Camera state set to: $isOn")
         }
     }
 
@@ -203,12 +225,11 @@ class CameraFeedFragment : Fragment() {
                     lifecycleScope.launch(Dispatchers.Default) {
                         repeat(3) { attempt ->
                             try {
-                                val cameraProvider =
-                                    ProcessCameraProvider.getInstance(requireContext()).get()
+                                val cameraProvider = ProcessCameraProvider.getInstance(requireContext()).get()
                                 val resolutionSelector = ResolutionSelector.Builder()
                                     .setResolutionStrategy(
                                         ResolutionStrategy(
-                                            Size(640, 480),
+                                            Size(INPUT_SIZE, INPUT_SIZE),
                                             ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER
                                         )
                                     )
@@ -253,10 +274,11 @@ class CameraFeedFragment : Fragment() {
                                         )
                                     }
                                     continuation.resume(Unit)
+                                    Log.d(TAG, "Camera started successfully.")
                                 }
-                                return@launch // Success
+                                return@launch
                             } catch (e: Exception) {
-                                Log.e("CameraX", "Camera start attempt $attempt failed", e)
+                                Log.e("CameraX", "Camera start attempt $attempt failed: ${e.message}", e)
                                 if (attempt < 2) delay(500)
                             }
                         }
@@ -264,7 +286,7 @@ class CameraFeedFragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("CameraX", "Error starting camera", e)
+                Log.e("CameraX", "Error starting camera: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     isCameraOn = false
                     previewView.visibility = View.GONE
@@ -310,9 +332,10 @@ class CameraFeedFragment : Fragment() {
                             DistanceState.FAR
                         )
                     }
+                    Log.d(TAG, "Camera stopped.")
                 }
             } catch (e: Exception) {
-                Log.e("CameraX", "Error stopping camera", e)
+                Log.e("CameraX", "Error stopping camera: ${e.message}", e)
             }
         }
     }
@@ -347,16 +370,18 @@ class CameraFeedFragment : Fragment() {
 
             if (reusableBitmap == null || reusableBitmap?.width != width || reusableBitmap?.height != height) {
                 reusableBitmap?.recycle()
-                reusableBitmap = createBitmap(width, height)
+                reusableBitmap = createBitmap(width, height, Bitmap.Config.ARGB_8888) // Ensure ARGB_8888
             }
 
             val bitmap = reusableBitmap
+            // Copy pixels from ImageProxy to reusableBitmap
+            image.planes[0].buffer.rewind() // Rewind buffer to ensure it's read from the beginning
             bitmap?.copyPixelsFromBuffer(image.planes[0].buffer) ?: return
 
             val detections = objectDetector.detect(bitmap)
             processDetections(detections)
         } catch (e: Exception) {
-            Log.e("AnalyzeImage", "Error processing image", e)
+            Log.e("AnalyzeImage", "Error processing image: ${e.message}", e)
         } finally {
             imageProxy.close()
         }

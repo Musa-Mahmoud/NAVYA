@@ -17,5 +17,6 @@
     <string name="camera_view">Camera view</string>
     <string name="initializing_camera">Initializing camera…</string>
     <string name="camera_unavailable">Camera unavailable</string>
+    <string name="selected_color_preview">Selected color preview</string>
 
 </resources>
