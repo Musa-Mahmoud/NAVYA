@@ -16,4 +16,7 @@
     <color name="shadow_color">#55000000</color> <!-- subtle shadow for glow -->
 
     <color name="button_text">#FFFFFF</color>
+
+    <color name="ac_blue">#2196F3</color>
+    <color name="ac_red">#F44336</color>
 </resources>

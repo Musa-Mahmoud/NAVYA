@@ -14,8 +14,9 @@ import com.google.android.material.slider.Slider
 import com.skydoves.colorpickerview.ColorPickerView
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import androidx.core.content.edit
+import androidx.fragment.app.Fragment
 
-class AmbientLight : DialogFragment() {
+class AmbientLight : Fragment() {
 
     private lateinit var colorPickerView: ColorPickerView
     private lateinit var colorPreview: View
@@ -49,7 +50,7 @@ class AmbientLight : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, android.R.style.Theme_DeviceDefault_Light_Dialog_MinWidth)
+        //setStyle(STYLE_NO_TITLE, android.R.style.Theme_DeviceDefault_Light_Dialog_MinWidth)
 
         val prefs = requireContext().getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
         prefs.registerOnSharedPreferenceChangeListener(prefsListener)
@@ -78,12 +79,6 @@ class AmbientLight : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        dialog?.window?.setBackgroundDrawableResource(R.drawable.rounded_rectangle_background)
-        dialog?.window?.setLayout(
-            (resources.displayMetrics.widthPixels * 0.5).toInt(),
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-        dialog?.window?.setDimAmount(0.5f)
         return inflater.inflate(R.layout.fragment_ambient_light, container, false)
     }
 

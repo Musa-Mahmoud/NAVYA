@@ -2,32 +2,25 @@ package com.example.navya_2
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.activity.viewModels
-
-import androidx.activity.viewModels
-
-
-import android.content.Context
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 
 @SuppressLint("StaticFieldLeak")
 object AppViewModelFactory : ViewModelProvider.Factory {
     private lateinit var context: Context
-
-    fun init(context: Context) {
-        this.context = context.applicationContext
-    }
-
+    fun init(context: Context) { this.context = context.applicationContext }
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(NavyaVoiceViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
@@ -37,8 +30,8 @@ object AppViewModelFactory : ViewModelProvider.Factory {
     }
 }
 
-
 class MainActivity : AppCompatActivity() {
+
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
@@ -50,81 +43,175 @@ class MainActivity : AppCompatActivity() {
     private lateinit var voiceMicButton: ImageButton
     private val viewModel: NavyaVoiceViewModel by viewModels { AppViewModelFactory }
 
+    private var ambientFragment: AmbientLight? = null
     private var voskDialogFragment: VoskDialogFragment? = null
     private var cameraFeedFragment: CameraFeedFragment? = null
+    private var acControlFragment: AcControlFragment? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppViewModelFactory.init(applicationContext)
-
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
         voiceMicButton = findViewById(R.id.voice_mic_button)
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container_view, CarFragment())
-            .commit()
+        // Initialize left container with CarFragment by default
+        showLeftFragment(CarFragment())
 
-        cameraFeedFragment = supportFragmentManager.findFragmentByTag("CameraFeedFragmentTag") as? CameraFeedFragment
-        voskDialogFragment = supportFragmentManager.findFragmentByTag("VoskDialogFragmentTag") as? VoskDialogFragment
+        val prefs = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
+        val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
 
-        val fragmentTransaction = supportFragmentManager.beginTransaction()
+        val transaction = supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
 
-        if (cameraFeedFragment == null) {
-            cameraFeedFragment = CameraFeedFragment()
-            fragmentTransaction.add(R.id.camera_feed_fragment_container, cameraFeedFragment!!, "CameraFeedFragmentTag")
+        cameraFeedFragment = CameraFeedFragment()
+        ambientFragment = AmbientLight()
+        voskDialogFragment = VoskDialogFragment()
+        acControlFragment = AcControlFragment.newInstance()
+
+        transaction.add(R.id.camera_feed_fragment_container, cameraFeedFragment!!, "CameraFeedFragmentTag")
+        transaction.add(R.id.camera_feed_fragment_container, ambientFragment!!, "AmbientLightFragmentTag")
+        transaction.add(R.id.camera_feed_fragment_container, voskDialogFragment!!, "VoskDialogFragmentTag")
+        transaction.add(R.id.camera_feed_fragment_container, acControlFragment!!, "AcControlFragmentTag")
+
+        if (switchState == SwitchState.SWITCH_CENTER) {
+            transaction.show(ambientFragment!!)
+            transaction.hide(cameraFeedFragment!!)
+            transaction.hide(voskDialogFragment!!)
+            transaction.hide(acControlFragment!!)
+        } else {
+            transaction.show(cameraFeedFragment!!)
+            transaction.hide(ambientFragment!!)
+            transaction.hide(voskDialogFragment!!)
+            transaction.hide(acControlFragment!!)
         }
 
-        if (voskDialogFragment == null) {
-            voskDialogFragment = VoskDialogFragment()
-            fragmentTransaction.add(R.id.camera_feed_fragment_container, voskDialogFragment!!, "VoskDialogFragmentTag")
-        }
-
-        fragmentTransaction.show(cameraFeedFragment!!)
-        fragmentTransaction.hide(voskDialogFragment!!)
-        fragmentTransaction.commit()
+        transaction.commit()
 
         findViewById<ImageButton>(R.id.ambient_light_button).setOnClickListener {
-            val dialog = AmbientLight.newInstance()
-            dialog.show(supportFragmentManager, "AmbientLightDialog")
+            handleFragmentSwitch(SWITCH_TARGET.AMBIENT)
+        }
+
+        findViewById<ImageButton>(R.id.ac_control_button).setOnClickListener {
+            handleFragmentSwitch(SWITCH_TARGET.AC_CONTROL)
         }
 
         voiceMicButton.setOnClickListener {
-            val transaction = supportFragmentManager.beginTransaction()
-            if (viewModel.isListening.value == true) {
-                viewModel.toggleListening()
-                voiceMicButton.setImageResource(R.drawable.ic_micsvg)
-                voiceMicButton.setBackgroundResource(R.drawable.circular_button_background)
-                voiceMicButton.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
-                voskDialogFragment?.let { transaction.hide(it) }
-                cameraFeedFragment?.let { transaction.show(it) }
-            } else {
-                viewModel.toggleListening()
-                voiceMicButton.setImageResource(R.drawable.ic_stop)
-                voiceMicButton.setBackgroundResource(R.drawable.button_red_background)
-                voiceMicButton.animate().scaleX(1.2f).scaleY(1.2f).setDuration(200).start()
-                cameraFeedFragment?.let { transaction.hide(it) }
-                voskDialogFragment?.let { transaction.show(it) }
-            }
-            transaction.commit()
+            handleVoiceMicClick()
         }
 
         viewModel.isListening.observe(this) { isListening ->
             if (!isListening && voskDialogFragment?.isVisible == true) {
-                val transaction = supportFragmentManager.beginTransaction()
-                voskDialogFragment?.let { transaction.hide(it) }
-                cameraFeedFragment?.let { transaction.show(it) }
-                transaction.commit()
-
-                voiceMicButton.setImageResource(R.drawable.ic_micsvg)
-                voiceMicButton.setBackgroundResource(R.drawable.circular_button_background)
-                voiceMicButton.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                switchToFragment(cameraFeedFragment!!)
+                updateMicButtonIdle()
             }
         }
 
         checkAndRequestPermissions()
         hideSystemBars()
+    }
+
+    enum class SWITCH_TARGET { AMBIENT, AC_CONTROL }
+
+    private fun handleFragmentSwitch(target: SWITCH_TARGET) {
+        val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
+
+        val transaction = supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+
+        if (switchState != SwitchState.SWITCH_CENTER) {
+            Toast.makeText(this, "Cannot change screen while turning.", Toast.LENGTH_SHORT).show()
+            switchToFragment(cameraFeedFragment!!)
+            return
+        }
+
+        when (target) {
+            SWITCH_TARGET.AMBIENT -> {
+                switchToFragment(ambientFragment!!)
+            }
+            SWITCH_TARGET.AC_CONTROL -> {
+                switchToFragment(acControlFragment!!)
+            }
+        }
+
+        transaction.commit()
+        syncLeftContainer(
+            when (target) {
+                SWITCH_TARGET.AMBIENT -> ambientFragment!!
+                SWITCH_TARGET.AC_CONTROL -> acControlFragment!!
+            }
+        )    }
+
+    private fun handleVoiceMicClick() {
+        val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
+
+        if (switchState != SwitchState.SWITCH_CENTER) {
+            Toast.makeText(this, "Cannot use voice control while turning.", Toast.LENGTH_SHORT).show()
+            switchToFragment(cameraFeedFragment!!)
+            return
+        }
+
+        if (viewModel.isListening.value == true) {
+            viewModel.toggleListening()
+            updateMicButtonIdle()
+            switchToFragment(cameraFeedFragment!!)
+        } else {
+            viewModel.toggleListening()
+            updateMicButtonActive()
+            switchToFragment(voskDialogFragment!!)
+        }
+        syncLeftContainer(if (viewModel.isListening.value == true) voskDialogFragment!! else cameraFeedFragment!!)
+
+    }
+
+    private fun switchToFragment(fragmentToShow: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+
+        listOf(cameraFeedFragment, ambientFragment, voskDialogFragment, acControlFragment).forEach {
+            if (it == fragmentToShow) transaction.show(it!!)
+            else transaction.hide(it!!)
+        }
+        transaction.commit()
+        syncLeftContainer(fragmentToShow)
+    }
+
+    private fun syncLeftContainer(currentTargetFragment: Fragment) {
+        val shouldShowAcInfo = currentTargetFragment == acControlFragment
+        val currentLeftFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
+
+        if (shouldShowAcInfo) {
+            if (currentLeftFragment !is AcInfoFragment) {
+                showLeftFragment(AcInfoFragment.newInstance())
+            }
+        } else {
+            if (currentLeftFragment !is CarFragment) {
+                showLeftFragment(CarFragment())
+            }
+        }
+    }
+
+
+    private fun showLeftFragment(fragment: Fragment) {
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .replace(R.id.fragment_container_view, fragment)
+            .commit()
+    }
+
+    private fun updateMicButtonIdle() {
+        voiceMicButton.setImageResource(R.drawable.ic_micsvg)
+        voiceMicButton.setBackgroundResource(R.drawable.circular_button_background)
+        voiceMicButton.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+    }
+
+    private fun updateMicButtonActive() {
+        voiceMicButton.setImageResource(R.drawable.ic_stop)
+        voiceMicButton.setBackgroundResource(R.drawable.button_red_background)
+        voiceMicButton.animate().scaleX(1.2f).scaleY(1.2f).setDuration(200).start()
     }
 
     private fun checkAndRequestPermissions() {
@@ -151,9 +238,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS && !allPermissionsGranted()) {

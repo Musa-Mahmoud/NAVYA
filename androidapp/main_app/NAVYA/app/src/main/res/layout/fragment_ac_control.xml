@@ -1,0 +1,77 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/ac_fragment_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/fragment_background_rounded">
+
+    <!-- Temperature Text -->
+    <TextView
+        android:id="@+id/inner_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inner: 20°C"
+        android:textColor="@android:color/white"
+        android:textSize="28sp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="32dp" />
+
+    <!-- Knob -->
+    <me.tankery.lib.circularseekbar.CircularSeekBar
+        android:id="@+id/circularSeekBar"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center" />
+
+    <!-- PNG icon inside knob -->
+    <ImageView
+        android:id="@+id/center_icon"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center"
+        android:src="@drawable/cold"
+        android:alpha="0.8" />
+
+    <!-- AC and Rear AC Toggle Buttons + Rear AC Icon in a horizontal row -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="32dp">
+
+        <!-- AC Toggle Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ac_toggle_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AC On"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="@android:color/white"
+            app:cornerRadius="16dp"
+            android:padding="12dp"/>
+
+        <!-- Rear AC Toggle Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/rear_ac_toggle_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rear AC Off"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="@android:color/white"
+            app:cornerRadius="16dp"
+            android:padding="12dp"
+            android:layout_marginStart="16dp"/>
+
+        <!-- Rear AC Icon beside toggle button -->
+        <ImageView
+            android:id="@+id/rear_ac_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:src="@drawable/ic_rear_ac"
+            android:alpha="0.3" /> <!-- Starts faded OFF -->
+    </LinearLayout>
+
+</FrameLayout>

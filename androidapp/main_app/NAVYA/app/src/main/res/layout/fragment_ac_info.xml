@@ -1,0 +1,53 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Car Image -->
+    <ImageView
+        android:id="@+id/car_image"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_gravity="center"
+        android:src="@drawable/car_ac" />
+
+    <!-- Front AC Wind Overlay -->
+    <ImageView
+        android:id="@+id/front_ac_wind"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_gravity="center"
+        android:src="@drawable/front_wind"
+        android:visibility="gone"
+        android:alpha="0.8" />
+
+    <!-- Rear AC Wind Overlay -->
+    <ImageView
+        android:id="@+id/rear_ac_wind"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_gravity="center"
+        android:src="@drawable/rear_wind"
+        android:visibility="gone"
+        android:alpha="0.8" />
+
+    <!-- Info Column -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="32dp">
+
+        <TextView
+            android:id="@+id/inner_temp"
+            android:text="Inner Temp: 22°C"
+            android:textSize="24sp"
+            android:textColor="@android:color/white"
+            android:layout_margin="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+
+    </LinearLayout>
+</FrameLayout>

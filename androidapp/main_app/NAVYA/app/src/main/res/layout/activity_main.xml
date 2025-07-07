@@ -63,8 +63,8 @@
     <!-- Ambient Light Icon Button centered at Bottom -->
     <ImageButton
         android:id="@+id/voice_mic_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
         android:src="@drawable/ic_micsvg"
         android:background="@drawable/circular_button_background"
         android:padding="8dp"
@@ -74,9 +74,21 @@
         android:layout_marginBottom="20dp" />
 
     <ImageButton
+        android:id="@+id/ac_control_button"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:src="@drawable/ic_ac"
+        android:background="@drawable/circular_button_background"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ambient_light_button"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="20dp" />
+
+    <ImageButton
         android:id="@+id/ambient_light_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
         android:src="@drawable/ambient"
         android:background="@drawable/circular_button_background"
         android:contentDescription="@string/ambient_light"
