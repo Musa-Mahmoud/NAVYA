@@ -1,0 +1,33 @@
+cc_defaults {
+    name: "vsomeip_service_defaults",
+    vendor: true,
+
+    cppflags: [
+        "-std=c++11",
+        "-Wno-unused-parameter",
+    ],
+
+    shared_libs: [
+        "libc++",
+        "liblog",
+        "libvsomeip3",
+        "libvsomeip3-cfg",
+        "libvsomeip3-e2e",
+        "libvsomeip3-sd",
+    ],
+}
+
+cc_binary {
+    name: "vsomeip_server_test",
+    defaults: ["vsomeip_service_defaults"],
+    srcs: [
+        "hello_world_service_main.cpp",
+    ],
+}
+
+prebuilt_etc {
+    name: "server-local.json",
+    vendor: true,
+    sub_dir: "vsomeip",
+    src: "server-local.json",
+}

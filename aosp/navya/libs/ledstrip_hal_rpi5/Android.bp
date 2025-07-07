@@ -1,0 +1,26 @@
+cc_library_shared {
+    name: "neopixelhal",
+    vendor: true,
+    srcs: [
+        "src/NeoPixelHal.cpp", 
+    ],
+    cflags: [
+        "-Wall",             
+        "-Werror",           
+        "-std=c++17",        
+    ],
+    shared_libs: [
+        "liblog",           
+    ],
+    header_libs: [
+        "neopixelhal_headers",
+    ],
+    host_supported : true,
+}
+
+cc_library_headers {
+    name: "neopixelhal_headers",
+    vendor: true,
+    export_include_dirs: ["inc"],
+    host_supported : true,
+}

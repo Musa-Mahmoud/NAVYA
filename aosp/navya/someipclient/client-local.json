@@ -1,0 +1,26 @@
+{
+    "unicast":  "192.168.1.101",
+    "logging": {
+        "level": "debug",
+        "console": true
+    },
+    "application" : 
+    [
+        {
+            "name" : "hello_world_client",
+            "id": "0x5555"
+        }
+    ],
+    "service-discovery": {
+        "enable": true,
+        "multicast": "224.244.224.245",
+        "port": 30490,
+        "protocol": "udp",
+        "initial_delay_min": 100,
+        "initial_delay_max": 300,
+        "repetition_base_delay": 200,
+        "repetition_max": 3,
+        "ttl": 3
+    },
+    "routing": "hello_world_client"
+}

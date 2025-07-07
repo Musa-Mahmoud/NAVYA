@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UxRestrictions xmlns:car="http://schemas.android.com/apk/res-auto">
+    <RestrictionMapping physicalPort="0">
+        <DrivingState state="parked">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+        <DrivingState state="idling">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+        <DrivingState state="moving">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+    </RestrictionMapping>
+
+
+    <RestrictionMapping physicalPort="1">
+        <DrivingState state="parked">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+        <DrivingState state="idling">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+        <DrivingState state="moving">
+            <Restrictions requiresDistractionOptimization="false" uxr="none"/>
+        </DrivingState>
+    </RestrictionMapping>
+</UxRestrictions>
+

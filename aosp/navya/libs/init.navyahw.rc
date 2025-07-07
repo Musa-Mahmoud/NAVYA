@@ -1,0 +1,4 @@
+on boot
+    chmod 0666 /dev/gpiochip0
+    chmod 0666 /dev/i2c-1
+
