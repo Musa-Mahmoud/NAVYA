@@ -1,8 +1,6 @@
-package com.example.navya_2
+package com.example.navya_2.feature.car.view
 
 import android.animation.ValueAnimator
-import android.content.Context
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -10,16 +8,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.example.navya_2.R
+import com.example.navya_2.data.dto.AmbientLightStateDto
+import com.example.navya_2.data.dto.CameraStateDto
+import com.example.navya_2.feature.ambientlight.viewmodel.AmbientLightViewModel
+import com.example.navya_2.feature.ambientlight.viewmodel.AmbientLightViewModelFactory
+import com.example.navya_2.feature.car.viewmodel.CarViewModel
+import com.example.navya_2.feature.car.viewmodel.CarViewModelFactory
+import com.example.navya_2.util.DistanceState
+import com.example.navya_2.util.SwitchState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import androidx.core.view.isVisible
 
 class CarFragment : Fragment() {
-
     private lateinit var carLeft: ImageView
     private lateinit var carRight: ImageView
     private lateinit var carSafe: ImageView
@@ -27,11 +34,8 @@ class CarFragment : Fragment() {
     private lateinit var carDanger: ImageView
     private lateinit var glowView: ImageView
 
-    private lateinit var buttonLeft: View
-    private lateinit var buttonRight: View
-    private lateinit var buttonOff: View
-
-    private lateinit var prefs: SharedPreferences
+    private val viewModel: CarViewModel by viewModels { CarViewModelFactory() }
+    private val ambientLightViewModel: AmbientLightViewModel by viewModels { AmbientLightViewModelFactory() }
 
     private var blinkJob: Job? = null
     private var blinkerJob: Job? = null
@@ -39,6 +43,52 @@ class CarFragment : Fragment() {
     private var blinkerPlayer: MediaPlayer? = null
     private var dangerPlayer: MediaPlayer? = null
     private var glowAnimator: ValueAnimator? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_car, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        carLeft = view.findViewById(R.id.car_left)
+        carRight = view.findViewById(R.id.car_right)
+        carSafe = view.findViewById(R.id.car_safe)
+        carMedium = view.findViewById(R.id.car_medium)
+        carDanger = view.findViewById(R.id.car_danger)
+        glowView = view.findViewById(R.id.car_shadow_background)
+
+        viewModel.cameraState.observe(viewLifecycleOwner) { state: CameraStateDto ->
+            updateIndicators(state.switchState)
+            updateDistanceState(state.distanceState)
+        }
+
+        ambientLightViewModel.ambientLightState.observe(viewLifecycleOwner) { state: AmbientLightStateDto ->
+            applyGlowColor(state.color)
+        }
+
+        // Initialize with current state
+        viewModel.cameraState.value?.let { state ->
+            updateIndicators(state.switchState)
+            updateDistanceState(state.distanceState)
+        }
+        ambientLightViewModel.ambientLightState.value?.let { applyGlowColor(it.color) }
+    }
+
+    private fun updateIndicators(switchState: Int) {
+        stopBlinking()
+        when (switchState) {
+            SwitchState.SWITCH_LEFT -> startBlinking(carLeft)
+            SwitchState.SWITCH_RIGHT -> startBlinking(carRight)
+            else -> {
+                carLeft.visibility = View.GONE
+                carRight.visibility = View.GONE
+            }
+        }
+    }
 
     private fun startBlinking(view: ImageView) {
         stopBlinking()
@@ -67,18 +117,7 @@ class CarFragment : Fragment() {
         blinkerPlayer = null
     }
 
-    private fun stopStateBlinking() {
-        stateBlinkJob?.cancel()
-        stateBlinkJob = null
-        carSafe.visibility = View.GONE
-        carMedium.visibility = View.GONE
-        carDanger.visibility = View.GONE
-        dangerPlayer?.stop()
-        dangerPlayer?.release()
-        dangerPlayer = null
-    }
-
-    private fun handleStateChange(state: Int) {
+    private fun updateDistanceState(state: Int) {
         stopStateBlinking()
         when (state) {
             DistanceState.FAR -> {
@@ -114,6 +153,17 @@ class CarFragment : Fragment() {
         }
     }
 
+    private fun stopStateBlinking() {
+        stateBlinkJob?.cancel()
+        stateBlinkJob = null
+        carSafe.visibility = View.GONE
+        carMedium.visibility = View.GONE
+        carDanger.visibility = View.GONE
+        dangerPlayer?.stop()
+        dangerPlayer?.release()
+        dangerPlayer = null
+    }
+
     private fun applyGlowColor(color: Int) {
         glowView.setColorFilter(color)
         glowAnimator?.cancel()
@@ -126,55 +176,10 @@ class CarFragment : Fragment() {
         }
     }
 
-    private val preferenceListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-        when (key) {
-            SharedState.KEY_DISTANCE_SAFETY_STATE -> {
-                val state = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
-                handleStateChange(state)
-            }
-            SharedState.KEY_SWITCH_STATE -> {
-                val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_INVALID)
-                when (switchState) {
-                    SwitchState.SWITCH_LEFT -> startBlinking(carLeft)
-                    SwitchState.SWITCH_RIGHT -> startBlinking(carRight)
-                    else -> stopBlinking()
-                }
-            }
-            SharedState.KEY_AMBIENT_COLOR -> {
-                val color = prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN)
-                applyGlowColor(color)
-            }
-        }
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        val view = inflater.inflate(R.layout.fragment_car, container, false)
-
-        prefs = requireContext().getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.registerOnSharedPreferenceChangeListener(preferenceListener)
-
-        glowView = view.findViewById(R.id.car_shadow_background)
-        carLeft = view.findViewById(R.id.car_left)
-        carRight = view.findViewById(R.id.car_right)
-        carSafe = view.findViewById(R.id.car_safe)
-        carMedium = view.findViewById(R.id.car_medium)
-        carDanger = view.findViewById(R.id.car_danger)
-
-            val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
-        handleStateChange(initialState)
-        applyGlowColor(prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN))
-
-        return view
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         stopBlinking()
         stopStateBlinking()
         glowAnimator?.cancel()
-        prefs.unregisterOnSharedPreferenceChangeListener(preferenceListener)
     }
 }

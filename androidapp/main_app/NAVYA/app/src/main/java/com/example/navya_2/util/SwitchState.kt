@@ -1,4 +1,4 @@
-package com.example.navya_2
+package com.example.navya_2.util
 
 class SwitchState {
     companion object {

@@ -1,4 +1,4 @@
-package com.example.navya_2
+package com.example.navya_2.util
 
 object SharedState {
     const val PREFS_NAME = "car_state_prefs"

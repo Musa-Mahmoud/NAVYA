@@ -1,8 +1,9 @@
-package com.example.navya_2
+package com.example.navya_2.util
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.core.graphics.scale
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.core.BaseOptions
 import org.tensorflow.lite.task.vision.detector.Detection
@@ -24,31 +25,20 @@ class ObjectDetectorHelper(
         private const val TAG = "ObjectDetectorHelper"
     }
 
-    init {
-        setupDetector()
+    fun warmUp() {
+        ensureInitialized()
     }
 
-    private fun setupDetector() {
+    private fun ensureInitialized() {
+        if (detector != null) return
         try {
-            val baseOptionsBuilder = BaseOptions.builder()
+            val baseOptions = BaseOptions.builder()
                 .setNumThreads(numThreads)
-
-            // If you want to use GPU, you need to add the 'org.tensorflow:tensorflow-lite-gpu' dependency
-            // and use baseOptionsBuilder.addDelegate(GpuDelegate()).
-            // Otherwise, the default CPU backend (which often uses XNNPACK internally) will be used.
-            if (useGpu) {
-                // Example for GPU delegate (requires 'tensorflow-lite-gpu' dependency)
-                // try {
-                //     baseOptionsBuilder.addDelegate(GpuDelegate())
-                //     Log.d(TAG, "GPU delegate added.")
-                // } catch (e: Exception) {
-                //     Log.e(TAG, "Failed to add GPU delegate: ${e.message}. Falling back to CPU.", e)
-                // }
-                Log.w(TAG, "GPU delegate requested but not explicitly configured. Using default CPU backend.")
-            }
+                .apply { if (useGpu) useGpu() }
+                .build()
 
             val options = ObjectDetectorOptions.builder()
-                .setBaseOptions(baseOptionsBuilder.build())
+                .setBaseOptions(baseOptions)
                 .setScoreThreshold(threshold)
                 .setMaxResults(maxResults)
                 .build()
@@ -69,13 +59,15 @@ class ObjectDetectorHelper(
     }
 
     fun detect(bitmap: Bitmap): List<Detection> {
-        if (detector == null) {
-            Log.e(TAG, "Detector is null, cannot perform detection.")
-            return emptyList()
+        ensureInitialized()
+        return try {
+            val resizedBitmap = bitmap.scale(INPUT_SIZE, INPUT_SIZE)
+            val image = TensorImage.fromBitmap(resizedBitmap)
+            detector?.detect(image) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("ObjectDetector", "Error detecting objects", e)
+            emptyList()
         }
-        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true)
-        val tensorImage = TensorImage.fromBitmap(resizedBitmap)
-        return detector?.detect(tensorImage) ?: emptyList()
     }
 
     fun close() {
