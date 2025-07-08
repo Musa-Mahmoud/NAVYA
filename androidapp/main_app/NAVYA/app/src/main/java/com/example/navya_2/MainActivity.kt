@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private var voskDialogFragment: VoskDialogFragment? = null
     private var cameraFeedFragment: CameraFeedFragment? = null
     private var acControlFragment: AcControlFragment? = null
+    private var userSpaceFragment: UserSpace? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +57,6 @@ class MainActivity : AppCompatActivity() {
 
         voiceMicButton = findViewById(R.id.voice_mic_button)
 
-        // Initialize left container with CarFragment by default
         showLeftFragment(CarFragment())
 
         val prefs = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
@@ -69,19 +69,23 @@ class MainActivity : AppCompatActivity() {
         ambientFragment = AmbientLight()
         voskDialogFragment = VoskDialogFragment()
         acControlFragment = AcControlFragment.newInstance()
+        userSpaceFragment = UserSpace()
 
         transaction.add(R.id.camera_feed_fragment_container, cameraFeedFragment!!, "CameraFeedFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, ambientFragment!!, "AmbientLightFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, voskDialogFragment!!, "VoskDialogFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, acControlFragment!!, "AcControlFragmentTag")
+        transaction.add(R.id.camera_feed_fragment_container, userSpaceFragment!!, "UserSpaceFragmentTag")
 
         if (switchState == SwitchState.SWITCH_CENTER) {
-            transaction.show(ambientFragment!!)
+            transaction.show(userSpaceFragment!!)
             transaction.hide(cameraFeedFragment!!)
+            transaction.hide(ambientFragment!!)
             transaction.hide(voskDialogFragment!!)
             transaction.hide(acControlFragment!!)
         } else {
             transaction.show(cameraFeedFragment!!)
+            transaction.hide(userSpaceFragment!!)
             transaction.hide(ambientFragment!!)
             transaction.hide(voskDialogFragment!!)
             transaction.hide(acControlFragment!!)
@@ -95,6 +99,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.ac_control_button).setOnClickListener {
             handleFragmentSwitch(SWITCH_TARGET.AC_CONTROL)
+        }
+
+        findViewById<ImageButton>(R.id.user_space_button).setOnClickListener {
+            handleFragmentSwitch(SWITCH_TARGET.USERSPACE)
         }
 
         voiceMicButton.setOnClickListener {
@@ -112,14 +120,11 @@ class MainActivity : AppCompatActivity() {
         hideSystemBars()
     }
 
-    enum class SWITCH_TARGET { AMBIENT, AC_CONTROL }
+    enum class SWITCH_TARGET { AMBIENT, AC_CONTROL, USERSPACE }
 
     private fun handleFragmentSwitch(target: SWITCH_TARGET) {
         val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
             .getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
-
-        val transaction = supportFragmentManager.beginTransaction()
-            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
 
         if (switchState != SwitchState.SWITCH_CENTER) {
             Toast.makeText(this, "Cannot change screen while turning.", Toast.LENGTH_SHORT).show()
@@ -128,21 +133,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         when (target) {
-            SWITCH_TARGET.AMBIENT -> {
-                switchToFragment(ambientFragment!!)
-            }
-            SWITCH_TARGET.AC_CONTROL -> {
-                switchToFragment(acControlFragment!!)
-            }
+            SWITCH_TARGET.AMBIENT -> switchToFragment(ambientFragment!!)
+            SWITCH_TARGET.AC_CONTROL -> switchToFragment(acControlFragment!!)
+            SWITCH_TARGET.USERSPACE -> switchToFragment(userSpaceFragment!!)
         }
-
-        transaction.commit()
-        syncLeftContainer(
-            when (target) {
-                SWITCH_TARGET.AMBIENT -> ambientFragment!!
-                SWITCH_TARGET.AC_CONTROL -> acControlFragment!!
-            }
-        )    }
+    }
 
     private fun handleVoiceMicClick() {
         val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
@@ -157,24 +152,23 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isListening.value == true) {
             viewModel.toggleListening()
             updateMicButtonIdle()
-            switchToFragment(cameraFeedFragment!!)
+            switchToFragment(userSpaceFragment!!)
         } else {
             viewModel.toggleListening()
             updateMicButtonActive()
             switchToFragment(voskDialogFragment!!)
         }
-        syncLeftContainer(if (viewModel.isListening.value == true) voskDialogFragment!! else cameraFeedFragment!!)
-
     }
 
     private fun switchToFragment(fragmentToShow: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
 
-        listOf(cameraFeedFragment, ambientFragment, voskDialogFragment, acControlFragment).forEach {
+        listOf(cameraFeedFragment, ambientFragment, voskDialogFragment, acControlFragment, userSpaceFragment).forEach {
             if (it == fragmentToShow) transaction.show(it!!)
             else transaction.hide(it!!)
         }
+
         transaction.commit()
         syncLeftContainer(fragmentToShow)
     }
@@ -193,7 +187,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
     private fun showLeftFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
