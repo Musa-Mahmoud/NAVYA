@@ -17,6 +17,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import androidx.core.view.isVisible
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 class CarFragment : Fragment() {
 
@@ -26,6 +28,8 @@ class CarFragment : Fragment() {
     private lateinit var carMedium: ImageView
     private lateinit var carDanger: ImageView
     private lateinit var glowView: ImageView
+
+    private lateinit var roadGif: ImageView // ✅ added
 
     private lateinit var buttonLeft: View
     private lateinit var buttonRight: View
@@ -76,20 +80,23 @@ class CarFragment : Fragment() {
         dangerPlayer?.stop()
         dangerPlayer?.release()
         dangerPlayer = null
+        hideRoadGif() // ✅ ensure hiding when state changes
     }
 
     private fun handleStateChange(state: Int) {
         stopStateBlinking()
         when (state) {
             DistanceState.FAR -> {
-                carSafe.visibility = View.VISIBLE
+                carSafe.visibility = View.GONE
                 carMedium.visibility = View.GONE
                 carDanger.visibility = View.GONE
+                showRoadGif() // ✅ show GIF in safe mode
             }
             DistanceState.NEAR -> {
                 carSafe.visibility = View.GONE
                 carMedium.visibility = View.VISIBLE
                 carDanger.visibility = View.GONE
+                hideRoadGif() // ✅ hide GIF in other modes
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
                         carMedium.visibility = if (carMedium.isVisible) View.GONE else View.VISIBLE
@@ -101,6 +108,7 @@ class CarFragment : Fragment() {
                 carSafe.visibility = View.GONE
                 carMedium.visibility = View.GONE
                 carDanger.visibility = View.VISIBLE
+                hideRoadGif() // ✅ hide GIF in other modes
                 stateBlinkJob = viewLifecycleOwner.lifecycleScope.launch {
                     while (isActive) {
                         carDanger.visibility = if (carDanger.isVisible) View.GONE else View.VISIBLE
@@ -112,6 +120,20 @@ class CarFragment : Fragment() {
                 dangerPlayer?.start()
             }
         }
+    }
+
+    private fun showRoadGif() {
+        roadGif.visibility = View.VISIBLE
+        Glide.with(this)
+            .asGif()
+            .load(R.raw.moving_road2)
+            .transition(DrawableTransitionOptions.withCrossFade())
+            .into(roadGif)
+    }
+
+    private fun hideRoadGif() {
+        roadGif.visibility = View.GONE
+        Glide.with(this).clear(roadGif)
     }
 
     private fun applyGlowColor(color: Int) {
@@ -162,8 +184,9 @@ class CarFragment : Fragment() {
         carSafe = view.findViewById(R.id.car_safe)
         carMedium = view.findViewById(R.id.car_medium)
         carDanger = view.findViewById(R.id.car_danger)
+        roadGif = view.findViewById(R.id.road_gif) // ✅ initialized
 
-            val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
+        val initialState = prefs.getInt(SharedState.KEY_DISTANCE_SAFETY_STATE, DistanceState.FAR)
         handleStateChange(initialState)
         applyGlowColor(prefs.getInt(SharedState.KEY_AMBIENT_COLOR, Color.CYAN))
 

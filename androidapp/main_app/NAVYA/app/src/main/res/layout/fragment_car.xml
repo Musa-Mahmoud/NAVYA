@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     android:background="@drawable/fragment_background_rounded">
 
+    <ImageView
+        android:id="@+id/road_gif"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:layout_gravity="bottom"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
     <!-- Base car image -->
 
     <ImageView
@@ -24,6 +31,8 @@
         android:src="@drawable/car_main"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp" />
+
+
 
 
     <!-- Safe image -->
