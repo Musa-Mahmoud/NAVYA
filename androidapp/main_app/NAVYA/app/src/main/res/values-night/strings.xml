@@ -1,6 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">NAVYA</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="title_text">hi</string>
+    <string name="hint_text">\nhihi</string>
+    <string name="toggle_button_description">Toggle BUtton\n</string>
+
+    <!-- General UI Strings -->
+
+
+    <!-- Ambient Light -->
+    <string name="ambient_light">Ambient Light</string>
+    <string name="close">Close</string>
+
+
     <string name="camera_view">Camera view</string>
     <string name="initializing_camera">Initializing camera…</string>
     <string name="camera_unavailable">Camera unavailable</string>
+    <string name="selected_color_preview">Selected color preview</string>
+
 </resources>

@@ -9,9 +9,9 @@
     <!-- NAVYA logo at top center -->
     <ImageView
         android:id="@+id/navya_logo"
-        android:layout_width="110dp"
-        android:layout_height="28dp"
-        android:src="@drawable/navya_logo"
+        android:layout_width="200dp"
+        android:layout_height="75dp"
+        android:src="@drawable/navya2"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -40,7 +40,6 @@
         app:layout_constraintStart_toEndOf="@id/fragment_container_view"
         android:layout_margin="12dp">
 
-        <!-- Vertical LinearLayout for right fragments -->
         <LinearLayout
             android:id="@+id/right_fragment_linear_layout"
             android:layout_width="match_parent"
@@ -48,7 +47,6 @@
             android:orientation="vertical"
             android:padding="8dp">
 
-            <!-- Camera Feed Fragment -->
             <FrameLayout
                 android:id="@+id/camera_feed_fragment_container"
                 android:layout_width="match_parent"
@@ -56,15 +54,27 @@
                 android:layout_weight="2"
                 android:layout_marginBottom="6dp" />
 
-
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Ambient Light Icon Button centered at Bottom -->
+    <!-- New Home/UserSpace Button -->
+        <ImageButton
+        android:id="@+id/user_space_button"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:src="@drawable/ic_home"
+    android:background="@drawable/circular_button_background"
+    android:padding="8dp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/voice_mic_button"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="20dp" />
+
+    <!-- Existing Bottom Buttons -->
     <ImageButton
         android:id="@+id/voice_mic_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
         android:src="@drawable/ic_micsvg"
         android:background="@drawable/circular_button_background"
         android:padding="8dp"
@@ -74,9 +84,21 @@
         android:layout_marginBottom="20dp" />
 
     <ImageButton
+        android:id="@+id/ac_control_button"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:src="@drawable/ic_ac"
+        android:background="@drawable/circular_button_background"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/ambient_light_button"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="20dp" />
+
+    <ImageButton
         android:id="@+id/ambient_light_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
         android:src="@drawable/ambient"
         android:background="@drawable/circular_button_background"
         android:contentDescription="@string/ambient_light"

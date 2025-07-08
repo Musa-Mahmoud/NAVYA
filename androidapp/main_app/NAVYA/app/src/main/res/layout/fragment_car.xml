@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     android:background="@drawable/fragment_background_rounded">
 
+    <ImageView
+        android:id="@+id/road_gif"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:scaleType="centerCrop"
+        android:visibility="gone" />
     <!-- Base car image -->
 
     <ImageView
@@ -26,6 +33,8 @@
         android:layout_marginTop="32dp" />
 
 
+
+
     <!-- Safe image -->
     <ImageView
         android:id="@+id/car_safe"
@@ -33,7 +42,7 @@
         android:layout_height="110dp"
         android:src="@drawable/safe"
         android:layout_gravity="center"
-        android:layout_marginTop="130dp"
+        android:layout_marginTop="150dp"
         android:visibility="gone" />
 
     <!-- Medium image -->
@@ -43,7 +52,7 @@
         android:layout_height="110dp"
         android:src="@drawable/medium"
         android:layout_gravity="center"
-        android:layout_marginTop="130dp"
+        android:layout_marginTop="150dp"
         android:visibility="gone" />
 
     <!-- Danger image -->
@@ -53,7 +62,7 @@
         android:layout_height="110dp"
         android:src="@drawable/danger"
         android:layout_gravity="center"
-        android:layout_marginTop="130dp"
+        android:layout_marginTop="150dp"
         android:visibility="gone" />
 
     <!-- Shadow overlay -->
