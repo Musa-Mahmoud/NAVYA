@@ -71,22 +71,14 @@ class CameraFeedFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        // This is fine, but ensure findCompatibleCamera doesn't block UI thread
-        // ProcessCameraProvider.getInstance().get() can block, so it's good it's in a coroutine.
         lifecycleScope.launch(Dispatchers.Default) {
-            // No need to call findCompatibleCamera here, it's called in startCamera()
-            // This line can be removed or kept if you need to pre-check camera availability.
-            // findCompatibleCamera(ProcessCameraProvider.getInstance(requireContext()).get())
+            findCompatibleCamera(ProcessCameraProvider.getInstance(requireContext()).get())
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         objectDetector = ObjectDetectorHelper(requireContext())
-        // REMOVE THE PROBLEMATIC LINE:
-        // cameraExecutor.execute {
-        //     objectDetector.detect(createBitmap(INPUT_SIZE, INPUT_SIZE, Bitmap.Config.ARGB_8888))
-        // }
         Log.d(TAG, "CameraFeedFragment onCreate: ObjectDetectorHelper initialized.")
     }
 

@@ -63,7 +63,7 @@ class AcInfoFragment : Fragment() {
 
     private fun updateInnerTemp() {
         val temp = prefs.getInt(SharedState.KEY_INNER_TEMP, 22)
-        innerTempText.text = "Inner Temp: ${temp}°C"
+        innerTempText.text = "${temp}°C"
     }
 
     private fun updateAcState() {

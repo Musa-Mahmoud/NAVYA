@@ -17,14 +17,11 @@ class AcControlFragment : Fragment() {
     private lateinit var circularSeekBar: CircularSeekBar
     private lateinit var innerTempText: TextView
     private lateinit var centerIcon: ImageView
-
     private lateinit var acToggleButton: MaterialButton
     private lateinit var rearAcToggleButton: MaterialButton
     private lateinit var rearAcIcon: ImageView
-
     private var isAcOn = false
     private var isRearAcOn = false // Rear AC starts OFF
-
     private val prefs by lazy {
         requireContext().getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
     }

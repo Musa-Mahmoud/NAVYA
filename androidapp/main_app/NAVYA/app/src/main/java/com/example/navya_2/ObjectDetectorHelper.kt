@@ -32,18 +32,7 @@ class ObjectDetectorHelper(
         try {
             val baseOptionsBuilder = BaseOptions.builder()
                 .setNumThreads(numThreads)
-
-            // If you want to use GPU, you need to add the 'org.tensorflow:tensorflow-lite-gpu' dependency
-            // and use baseOptionsBuilder.addDelegate(GpuDelegate()).
-            // Otherwise, the default CPU backend (which often uses XNNPACK internally) will be used.
             if (useGpu) {
-                // Example for GPU delegate (requires 'tensorflow-lite-gpu' dependency)
-                // try {
-                //     baseOptionsBuilder.addDelegate(GpuDelegate())
-                //     Log.d(TAG, "GPU delegate added.")
-                // } catch (e: Exception) {
-                //     Log.e(TAG, "Failed to add GPU delegate: ${e.message}. Falling back to CPU.", e)
-                // }
                 Log.w(TAG, "GPU delegate requested but not explicitly configured. Using default CPU backend.")
             }
 

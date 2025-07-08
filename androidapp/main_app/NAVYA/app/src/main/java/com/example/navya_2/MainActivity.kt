@@ -30,7 +30,7 @@ object AppViewModelFactory : ViewModelProvider.Factory {
     }
 }
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), FragmentSwitchListener {
 
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
 
         voiceMicButton = findViewById(R.id.voice_mic_button)
 
+        // Initialize left container with CarFragment by default
         showLeftFragment(CarFragment())
 
         val prefs = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
@@ -69,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         ambientFragment = AmbientLight()
         voskDialogFragment = VoskDialogFragment()
         acControlFragment = AcControlFragment.newInstance()
-        userSpaceFragment = UserSpace()
+        userSpaceFragment = UserSpace.newInstance()
 
         transaction.add(R.id.camera_feed_fragment_container, cameraFeedFragment!!, "CameraFeedFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, ambientFragment!!, "AmbientLightFragmentTag")
@@ -77,19 +78,12 @@ class MainActivity : AppCompatActivity() {
         transaction.add(R.id.camera_feed_fragment_container, acControlFragment!!, "AcControlFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, userSpaceFragment!!, "UserSpaceFragmentTag")
 
-        if (switchState == SwitchState.SWITCH_CENTER) {
-            transaction.show(userSpaceFragment!!)
-            transaction.hide(cameraFeedFragment!!)
-            transaction.hide(ambientFragment!!)
-            transaction.hide(voskDialogFragment!!)
-            transaction.hide(acControlFragment!!)
-        } else {
-            transaction.show(cameraFeedFragment!!)
-            transaction.hide(userSpaceFragment!!)
-            transaction.hide(ambientFragment!!)
-            transaction.hide(voskDialogFragment!!)
-            transaction.hide(acControlFragment!!)
-        }
+        // Set UserSpace as the default fragment
+        transaction.show(userSpaceFragment!!)
+        transaction.hide(cameraFeedFragment!!)
+        transaction.hide(ambientFragment!!)
+        transaction.hide(voskDialogFragment!!)
+        transaction.hide(acControlFragment!!)
 
         transaction.commit()
 
@@ -111,8 +105,16 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.isListening.observe(this) { isListening ->
             if (!isListening && voskDialogFragment?.isVisible == true) {
-                switchToFragment(cameraFeedFragment!!)
+                switchToFragment(userSpaceFragment!!)
                 updateMicButtonIdle()
+            }
+        }
+
+        // Observe navigateToAcControl to switch to AcControlFragment when needed
+        viewModel.navigateToAcControl.observe(this) { shouldNavigate ->
+            if (shouldNavigate == true) {
+                switchToFragment(acControlFragment!!)
+                viewModel.resetAcNavigation() // Reset navigation trigger
             }
         }
 
@@ -168,7 +170,6 @@ class MainActivity : AppCompatActivity() {
             if (it == fragmentToShow) transaction.show(it!!)
             else transaction.hide(it!!)
         }
-
         transaction.commit()
         syncLeftContainer(fragmentToShow)
     }
@@ -238,5 +239,9 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Permissions not granted.", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    override fun switchToCameraFeedFragment() {
+        switchToFragment(cameraFeedFragment!!)
     }
 }

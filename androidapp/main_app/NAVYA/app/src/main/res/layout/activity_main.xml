@@ -9,9 +9,9 @@
     <!-- NAVYA logo at top center -->
     <ImageView
         android:id="@+id/navya_logo"
-        android:layout_width="110dp"
-        android:layout_height="28dp"
-        android:src="@drawable/navya_logo"
+        android:layout_width="200dp"
+        android:layout_height="75dp"
+        android:src="@drawable/navya2"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
