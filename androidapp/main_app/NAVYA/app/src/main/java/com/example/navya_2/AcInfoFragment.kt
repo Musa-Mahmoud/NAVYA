@@ -1,21 +1,22 @@
 package com.example.navya_2
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import android.animation.ValueAnimator
+import android.util.Log
 
 class AcInfoFragment : Fragment() {
-
     private lateinit var frontAcWind: ImageView
     private lateinit var rearAcWind: ImageView
     private lateinit var innerTempText: TextView
     private lateinit var prefs: SharedPreferences
-
     private var syncedWindAnimator: ValueAnimator? = null
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -26,6 +27,7 @@ class AcInfoFragment : Fragment() {
     }
 
     companion object {
+        private const val TAG = "AcInfoFragment"
         fun newInstance() = AcInfoFragment()
     }
 
@@ -35,6 +37,7 @@ class AcInfoFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val view = inflater.inflate(R.layout.fragment_ac_info, container, false)
+        AppViewModelFactory.init(requireContext())
 
         innerTempText = view.findViewById(R.id.inner_temp)
         frontAcWind = view.findViewById(R.id.front_ac_wind)
@@ -44,7 +47,6 @@ class AcInfoFragment : Fragment() {
 
         updateInnerTemp()
         updateAcState()
-
         return view
     }
 
@@ -53,48 +55,52 @@ class AcInfoFragment : Fragment() {
         prefs.registerOnSharedPreferenceChangeListener(prefListener)
         updateInnerTemp()
         updateAcState()
+        Log.d(TAG, "onResume: Registered SharedPreferences listener")
     }
 
     override fun onPause() {
         super.onPause()
         prefs.unregisterOnSharedPreferenceChangeListener(prefListener)
         stopSyncedWindAnimations()
+        Log.d(TAG, "onPause: Unregistered SharedPreferences listener")
     }
 
     private fun updateInnerTemp() {
         val temp = prefs.getInt(SharedState.KEY_INNER_TEMP, 22)
-        innerTempText.text = "${temp}°C"
+        innerTempText.text = "$temp°C"
+        Log.d(TAG, "Updated inner temp to $temp°C")
     }
 
     private fun updateAcState() {
         val isAcOn = prefs.getBoolean(SharedState.KEY_AC_STATE, false)
         val isRearAcOn = prefs.getBoolean(SharedState.KEY_REAR_AC_STATE, false)
 
+        frontAcWind.visibility = if (isAcOn) View.VISIBLE else View.INVISIBLE
+        rearAcWind.visibility = if (isRearAcOn) View.VISIBLE else View.INVISIBLE
+
         if (isAcOn || isRearAcOn) {
-            frontAcWind.visibility = if (isAcOn) View.VISIBLE else View.INVISIBLE
-            rearAcWind.visibility = if (isRearAcOn) View.VISIBLE else View.INVISIBLE
             startSyncedWindAnimations()
         } else {
             stopSyncedWindAnimations()
         }
+        Log.d(TAG, "Updated AC state - Front AC: $isAcOn, Rear AC: $isRearAcOn")
     }
 
     private fun startSyncedWindAnimations() {
-        if (syncedWindAnimator != null) return // prevent duplicate animators
+        if (syncedWindAnimator != null) return // Prevent duplicate animators
 
         syncedWindAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 2000L // total cycle duration
+            duration = 2000L // Total cycle duration
             repeatCount = ValueAnimator.INFINITE
             interpolator = android.view.animation.LinearInterpolator()
 
             addUpdateListener { animator ->
                 val progress = animator.animatedFraction
-
                 val translationY = -20f + (30f * progress) // -20 to +10
                 val alpha = if (progress < 0.75f) {
-                    progress / 0.75f // fade in
+                    progress / 0.75f // Fade in
                 } else {
-                    1f - ((progress - 0.75f) / 0.25f) // fade out
+                    1f - ((progress - 0.75f) / 0.25f) // Fade out
                 }
 
                 // Apply to visible winds only
@@ -109,6 +115,7 @@ class AcInfoFragment : Fragment() {
             }
 
             start()
+            Log.d(TAG, "Started wind animations")
         }
     }
 
@@ -119,8 +126,8 @@ class AcInfoFragment : Fragment() {
         // Reset visuals
         frontAcWind.alpha = 0f
         frontAcWind.translationY = -20f
-
         rearAcWind.alpha = 0f
         rearAcWind.translationY = -20f
+        Log.d(TAG, "Stopped wind animations")
     }
 }

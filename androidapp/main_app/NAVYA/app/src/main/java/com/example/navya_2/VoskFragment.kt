@@ -55,7 +55,7 @@ class VhalManager(private val context: Context) {
     companion object {
         private const val TAG = "VhalManager"
         private const val HVAC_PROPERTY_ID = 557842694
-        private const val AREA_ID = 0x01000000
+        private const val AREA_ID = 0
     }
 
     init {
@@ -92,6 +92,7 @@ class VhalManager(private val context: Context) {
         Log.d(TAG, "VHAL disconnected")
     }
 }
+
 class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: Context) : ViewModel() {
     private val _recognizedText = MutableLiveData("")
     val recognizedText: LiveData<String> = _recognizedText
@@ -102,24 +103,20 @@ class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: 
     private val _displayState = MutableLiveData(DisplayState.Idle)
     val displayState: LiveData<DisplayState> = _displayState
 
-    // New LiveData to signal navigation to AcControlFragment
-    private val _navigateToAcControl = MutableLiveData<Boolean>()
-    val navigateToAcControl: LiveData<Boolean> = _navigateToAcControl
-
     private var mediaPlayer: MediaPlayer? = null
+
+    private val prefs: SharedPreferences = context.getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
 
     private val stopPhrases = listOf(
         "hi navya", "light on", "light off", "ac on", "ac off", "ac of", "stop",
         "temperature down", "left camera", "right camera", "hi veachle",
-        "hello car", "hello navya", "hello vehicle", "temperature up", "hi", "hello"
+        "hello car", "hello navya", "hello vehicle", "temperature up", "hi", "hello", "rear ac on", "rear ac of", "rear ac off"
     )
 
     fun setDisplayState(state: DisplayState) {
         _displayState.value = state
     }
-    fun resetAcNavigation() {
-        _navigateToAcControl.value = false
-    }
+
     fun updateRecognizedText(text: String, state: DisplayState, vhalManager: VhalManager?) {
         val recognized = extractRecognizedText(text)
 
@@ -138,17 +135,44 @@ class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: 
                 "ac on" -> {
                     vhalManager?.setAcStatus(1)
                     playSound(R.raw.ac_on)
-                    _navigateToAcControl.value = true // Signal navigation to AcControlFragment
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 1)
+                        putBoolean(SharedState.KEY_AC_STATE, true)
+                        apply()
+                    }
+                    Log.d(TAG, "AC ON saved to SharedPreferences")
                 }
                 "ac off", "ac of" -> {
                     vhalManager?.setAcStatus(0)
                     playSound(R.raw.ac_off)
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 0)
+                        putBoolean(SharedState.KEY_AC_STATE, false)
+                        apply()
+                    }
+                    Log.d(TAG, "AC OFF saved to SharedPreferences")
                 }
                 "temperature down" -> {
                     playSound(R.raw.temp_down)
+                    val currentTemp = prefs.getInt(SharedState.KEY_INNER_TEMP, 22)
+                    val newTemp = (currentTemp - 1).coerceAtLeast(16)
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 2)
+                        putInt(SharedState.KEY_INNER_TEMP, newTemp)
+                        apply()
+                    }
+                    Log.d(TAG, "Temperature decreased to $newTemp°C")
                 }
                 "temperature up" -> {
                     playSound(R.raw.temp_up)
+                    val currentTemp = prefs.getInt(SharedState.KEY_INNER_TEMP, 22)
+                    val newTemp = (currentTemp + 1).coerceAtMost(30)
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 3)
+                        putInt(SharedState.KEY_INNER_TEMP, newTemp)
+                        apply()
+                    }
+                    Log.d(TAG, "Temperature increased to $newTemp°C")
                 }
                 "light off", "light of" -> {
                     vhalManager?.setAcStatus(0)
@@ -176,8 +200,23 @@ class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: 
                 "left camera off", "left camera of" -> {
                     playSound(R.raw.left_camera)
                 }
-                "danger wa" -> {
-                    playSound(R.raw.danger_wa)
+                "rear ac on" -> {
+                    playSound(R.raw.rear_ac_on)
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 4)
+                        putBoolean(SharedState.KEY_REAR_AC_STATE, true)
+                        apply()
+                    }
+                    Log.d(TAG, "Rear AC ON saved to SharedPreferences")
+                }
+                "rear ac of", "rear ac off" -> {
+                    playSound(R.raw.rear_ac_off)
+                    prefs.edit().apply {
+                        putInt(SharedState.VOSK_AC_STATE, 5)
+                        putBoolean(SharedState.KEY_REAR_AC_STATE, false)
+                        apply()
+                    }
+                    Log.d(TAG, "Rear AC OFF saved to SharedPreferences")
                 }
             }
             Log.d(TAG, "Stop phrase '$normalized' detected, stopping listening")
@@ -230,7 +269,6 @@ class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: 
 
     companion object {
         private const val TAG = "NavyaVoiceViewModel"
-
         class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(NavyaVoiceViewModel::class.java)) {
@@ -242,7 +280,6 @@ class NavyaVoiceViewModel(@SuppressLint("StaticFieldLeak") private val context: 
         }
     }
 }
-
 // WaveformView (unchanged)
 class WaveformView @JvmOverloads constructor(
     context: Context,

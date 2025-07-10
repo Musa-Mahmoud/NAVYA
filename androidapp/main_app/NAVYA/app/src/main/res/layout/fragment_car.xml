@@ -21,7 +21,7 @@
         android:layout_height="350dp"
         android:layout_gravity="top|center_horizontal"
         android:layout_marginTop="32dp"
-        android:src="@drawable/oval_glow"
+        android:src="@drawable/oval_glow2"
                 android:alpha="0.7"/>
 
     <ImageView

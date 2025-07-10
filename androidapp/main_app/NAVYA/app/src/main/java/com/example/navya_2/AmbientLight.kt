@@ -24,7 +24,7 @@ class AmbientLight : Fragment() {
     private var carPropertyManager: CarPropertyManager? = null
     private var userPickedColor: Int = Color.WHITE
     private var currentDangerLevel = DangerLevel.SAFE
-    private var brightness = 255
+    private var brightness = 100
     private lateinit var prefs: SharedPreferences
     private val TAG = "AmbientLight"
     private val propertyId = 557842693
@@ -96,8 +96,8 @@ class AmbientLight : Fragment() {
 
         // Configure slider range for brightness (0-255)
         brightnessSlider.valueFrom = 0f
-        brightnessSlider.valueTo = 255f
-        brightnessSlider.value = 255f // Default to max brightness
+        brightnessSlider.valueTo = 100f
+        brightnessSlider.value = 100f // Default to max brightness
         userPickedColor = loadSavedColor()
 
         colorPickerView.setColorListener(object : ColorEnvelopeListener {

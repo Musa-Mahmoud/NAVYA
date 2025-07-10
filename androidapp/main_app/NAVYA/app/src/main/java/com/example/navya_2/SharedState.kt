@@ -5,9 +5,8 @@ object SharedState {
     const val KEY_AC_STATE = "ac_state"
     const val KEY_REAR_AC_STATE = "rear_ac_state"
     const val KEY_INNER_TEMP = "inner_temp"
-
     const val KEY_AMBIENT_COLOR = "ambient_color"
-    const val VOSK_CAMERA_STATE = "vosk_state"
+    const val VOSK_AC_STATE = "vosk_state"
     const val KEY_DISTANCE_SAFETY_STATE = "distance_safety_state"
     const val KEY_SWITCH_STATE = "switch_state"
 }

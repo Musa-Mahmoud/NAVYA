@@ -3,8 +3,10 @@ package com.example.navya_2
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
@@ -16,6 +18,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
 object AppViewModelFactory : ViewModelProvider.Factory {
@@ -31,8 +36,8 @@ object AppViewModelFactory : ViewModelProvider.Factory {
 }
 
 class MainActivity : AppCompatActivity(), FragmentSwitchListener {
-
     companion object {
+        private const val TAG = "MainActivity"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
@@ -42,6 +47,8 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
 
     private lateinit var voiceMicButton: ImageButton
     private val viewModel: NavyaVoiceViewModel by viewModels { AppViewModelFactory }
+    private lateinit var prefs: SharedPreferences
+    private lateinit var prefListener: SharedPreferences.OnSharedPreferenceChangeListener
 
     private var ambientFragment: AmbientLight? = null
     private var voskDialogFragment: VoskDialogFragment? = null
@@ -57,66 +64,78 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
 
         voiceMicButton = findViewById(R.id.voice_mic_button)
 
-        // Initialize left container with CarFragment by default
+        // Initialize SharedPreferences
+        prefs = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
+
+        // Initialize fragments
+        ambientFragment = AmbientLight()
+        voskDialogFragment = VoskDialogFragment()
+        cameraFeedFragment = CameraFeedFragment()
+        acControlFragment = AcControlFragment()
+        userSpaceFragment = UserSpace.newInstance()
+
+        // Initialize left container with CarFragment
         showLeftFragment(CarFragment())
 
-        val prefs = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
-        val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
-
+        // Set up fragment container
         val transaction = supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
 
-        cameraFeedFragment = CameraFeedFragment()
-        ambientFragment = AmbientLight()
-        voskDialogFragment = VoskDialogFragment()
-        acControlFragment = AcControlFragment.newInstance()
-        userSpaceFragment = UserSpace.newInstance()
-
+        // Add fragments to container
         transaction.add(R.id.camera_feed_fragment_container, cameraFeedFragment!!, "CameraFeedFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, ambientFragment!!, "AmbientLightFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, voskDialogFragment!!, "VoskDialogFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, acControlFragment!!, "AcControlFragmentTag")
         transaction.add(R.id.camera_feed_fragment_container, userSpaceFragment!!, "UserSpaceFragmentTag")
 
-        // Set UserSpace as the default fragment
+        // Set UserSpace as default
         transaction.show(userSpaceFragment!!)
         transaction.hide(cameraFeedFragment!!)
         transaction.hide(ambientFragment!!)
         transaction.hide(voskDialogFragment!!)
         transaction.hide(acControlFragment!!)
-
         transaction.commit()
 
+        // Set up button listeners
         findViewById<ImageButton>(R.id.ambient_light_button).setOnClickListener {
             handleFragmentSwitch(SWITCH_TARGET.AMBIENT)
         }
-
         findViewById<ImageButton>(R.id.ac_control_button).setOnClickListener {
             handleFragmentSwitch(SWITCH_TARGET.AC_CONTROL)
         }
-
         findViewById<ImageButton>(R.id.user_space_button).setOnClickListener {
             handleFragmentSwitch(SWITCH_TARGET.USERSPACE)
         }
-
         voiceMicButton.setOnClickListener {
             handleVoiceMicClick()
         }
 
+        // Observe isListening to handle voice mic state
         viewModel.isListening.observe(this) { isListening ->
+            Log.d(TAG, "isListening changed: $isListening")
             if (!isListening && voskDialogFragment?.isVisible == true) {
                 switchToFragment(userSpaceFragment!!)
                 updateMicButtonIdle()
             }
         }
 
-        // Observe navigateToAcControl to switch to AcControlFragment when needed
-        viewModel.navigateToAcControl.observe(this) { shouldNavigate ->
-            if (shouldNavigate == true) {
-                switchToFragment(acControlFragment!!)
-                viewModel.resetAcNavigation() // Reset navigation trigger
+        // Set up SharedPreferences listener for VOSK_AC_STATE
+        prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == SharedState.VOSK_AC_STATE) {
+                val action = prefs.getInt(SharedState.VOSK_AC_STATE, 0)
+                Log.d(TAG, "Received VOSK_AC_STATE: $action")
+                if (action != 0) {
+                    switchToFragment(acControlFragment!!)
+                    // Delay reset to ensure AcControlFragment processes the change
+                    lifecycleScope.launch {
+                        delay(8000)
+                        prefs.edit().putInt(SharedState.VOSK_AC_STATE, 0).apply()
+                        Log.d(TAG, "Reset VOSK_AC_STATE to 0")
+                    }
+                }
             }
         }
+        prefs.registerOnSharedPreferenceChangeListener(prefListener)
 
         checkAndRequestPermissions()
         hideSystemBars()
@@ -125,9 +144,7 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
     enum class SWITCH_TARGET { AMBIENT, AC_CONTROL, USERSPACE }
 
     private fun handleFragmentSwitch(target: SWITCH_TARGET) {
-        val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
-            .getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
-
+        val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
         if (switchState != SwitchState.SWITCH_CENTER) {
             Toast.makeText(this, "Cannot change screen while turning.", Toast.LENGTH_SHORT).show()
             switchToFragment(cameraFeedFragment!!)
@@ -135,16 +152,14 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
         }
 
         when (target) {
-            SWITCH_TARGET.AMBIENT -> switchToFragment(ambientFragment!!)
-            SWITCH_TARGET.AC_CONTROL -> switchToFragment(acControlFragment!!)
-            SWITCH_TARGET.USERSPACE -> switchToFragment(userSpaceFragment!!)
+            SWITCH_TARGET.AMBIENT -> {switchToFragment(ambientFragment!!);updateMicButtonIdle();}
+            SWITCH_TARGET.AC_CONTROL -> {switchToFragment(acControlFragment!!);updateMicButtonIdle()}
+            SWITCH_TARGET.USERSPACE -> {switchToFragment(userSpaceFragment!!);updateMicButtonIdle()}
         }
     }
 
     private fun handleVoiceMicClick() {
-        val switchState = getSharedPreferences(SharedState.PREFS_NAME, Context.MODE_PRIVATE)
-            .getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
-
+        val switchState = prefs.getInt(SharedState.KEY_SWITCH_STATE, SwitchState.SWITCH_CENTER)
         if (switchState != SwitchState.SWITCH_CENTER) {
             Toast.makeText(this, "Cannot use voice control while turning.", Toast.LENGTH_SHORT).show()
             switchToFragment(cameraFeedFragment!!)
@@ -165,10 +180,13 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
     private fun switchToFragment(fragmentToShow: Fragment) {
         val transaction = supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-
         listOf(cameraFeedFragment, ambientFragment, voskDialogFragment, acControlFragment, userSpaceFragment).forEach {
-            if (it == fragmentToShow) transaction.show(it!!)
-            else transaction.hide(it!!)
+            if (it == fragmentToShow) {
+                transaction.show(it!!)
+                Log.d(TAG, "Showing fragment: ${it.javaClass.simpleName}")
+            } else {
+                transaction.hide(it!!)
+            }
         }
         transaction.commit()
         syncLeftContainer(fragmentToShow)
@@ -181,10 +199,12 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
         if (shouldShowAcInfo) {
             if (currentLeftFragment !is AcInfoFragment) {
                 showLeftFragment(AcInfoFragment.newInstance())
+                Log.d(TAG, "Switched left container to AcInfoFragment")
             }
         } else {
             if (currentLeftFragment !is CarFragment) {
                 showLeftFragment(CarFragment())
+                Log.d(TAG, "Switched left container to CarFragment")
             }
         }
     }
@@ -193,7 +213,7 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
         supportFragmentManager.beginTransaction()
             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
             .replace(R.id.fragment_container_view, fragment)
-            .commit()
+            .commitNow()
     }
 
     private fun updateMicButtonIdle() {
@@ -219,7 +239,7 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
     }
 
     private fun hideSystemBars() {
-        if (packageManager.hasSystemFeature("android.hardware.type.automotive")) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
             window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
                             View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
@@ -239,6 +259,12 @@ class MainActivity : AppCompatActivity(), FragmentSwitchListener {
             Toast.makeText(this, "Permissions not granted.", Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        prefs.unregisterOnSharedPreferenceChangeListener(prefListener)
+        Log.d(TAG, "SharedPreferences listener unregistered")
     }
 
     override fun switchToCameraFeedFragment() {
