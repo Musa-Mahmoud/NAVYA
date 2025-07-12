@@ -1,0 +1,5 @@
+
+<ports>
+    <port display="0" input="usb-xhci-hcd.1-1.2/input0" />
+    <port display="1" input="usb-xhci-hcd.1-1.3/input0" />
+</ports>

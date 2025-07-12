@@ -1,0 +1,8 @@
+cc_library_shared {
+    name: "libgpiohalrpi5",
+    srcs: ["src/*.cpp"],
+    export_include_dirs: ["inc"],
+    shared_libs: ["liblog", "libgpiod",],
+    host_supported : true,
+    vendor: true,
+}
