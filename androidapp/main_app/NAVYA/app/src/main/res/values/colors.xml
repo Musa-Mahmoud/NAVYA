@@ -8,5 +8,15 @@
     <color name="dark_surface_lighter">#4A4A4A</color> <!-- Noticeably lighter -->
     <color name="button_background">#333333</color>
     <color name="button_pressed">#555555</color>
+    <!-- Or a light blue -->
+
+
+    <color name="ripple_color">#33FFFFFF</color> <!-- semi-transparent white -->
+    <color name="button_outline">#66FFFFFF</color> <!-- subtle white outline -->
+    <color name="shadow_color">#55000000</color> <!-- subtle shadow for glow -->
+
     <color name="button_text">#FFFFFF</color>
+
+    <color name="ac_blue">#2196F3</color>
+    <color name="ac_red">#F44336</color>
 </resources>

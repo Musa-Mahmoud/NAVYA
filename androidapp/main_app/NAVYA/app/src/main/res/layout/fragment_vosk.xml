@@ -1,19 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/rounded_dark_surface_light_bg"
-    tools:context=".VoskFragment">
+    android:background="@drawable/rounded_rectangle_background"
+    android:padding="24dp"
+    android:clipToPadding="false">
 
+    <!-- Title Text - Enhanced for prominence -->
     <TextView
+        android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Vosk Fragment"
-        android:textColor="@android:color/white"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_gravity="center"/>
+        android:text="Voice Assistant"
+        android:textColor="@color/white"
+        android:textSize="28sp"
+    android:textStyle="bold"
+    android:letterSpacing="0.04"
+    android:fontFamily="sans-serif-medium"
+    android:contentDescription="Voice assistant title"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    android:layout_marginTop="32dp"
+    android:paddingBottom="16dp" />
 
-</FrameLayout>
+    <View
+        android:id="@+id/top_spacer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintBottom_toTopOf="@id/waveform_view"
+        app:layout_constraintVertical_weight="1" />
+
+    <!-- Waveform View - Centered and with more vertical space -->
+    <com.example.navya_2.WaveformView
+        android:id="@+id/waveform_view"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        android:visibility="visible"
+        android:contentDescription="Voice waveform visualization"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.5"
+        app:layout_constraintWidth_percent="0.92" />
+
+
+    <!-- Recognized Text - More prominent and with subtle background/shadow -->
+    <TextView
+        android:id="@+id/recognized_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:letterSpacing="0.03"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/rounded_text_background"
+        android:elevation="4dp"
+        android:contentDescription="Recognized voice command"
+        app:layout_constraintTop_toBottomOf="@id/waveform_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.92"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="20dp"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/bottom_spacer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/recognized_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_weight="1" />
+</androidx.constraintlayout.widget.ConstraintLayout>

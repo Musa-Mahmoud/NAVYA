@@ -6,4 +6,26 @@
     </style>
 
     <style name="Theme.NAVYA_2" parent="Base.Theme.NAVYA_2" />
+    <style name="Widget.App.Button" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/main_background</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="VolumeSliderStyle" parent="Widget.Material3.Slider">
+        <item name="trackColorActive">@color/dark_surface_lighter</item>
+        <item name="trackColorInactive">@color/dark_surface_light</item>
+        <item name="thumbColor">@color/white</item>
+        <item name="haloColor">@android:color/transparent</item>
+        <item name="tickColorActive">@android:color/transparent</item>
+        <item name="tickColorInactive">@android:color/transparent</item>
+    </style>
+
+    <style name="CustomVerticalSlider.Dark" parent="Widget.Material3.Slider">
+        <item name="trackColorActive">@color/dark_surface_lighter</item>
+        <item name="trackColorInactive">@color/dark_surface_light</item>
+        <item name="thumbColor">@color/white</item>
+        <item name="haloColor">@color/white</item>
+        <item name="tickColorActive">@color/white</item>
+        <item name="tickColorInactive">@color/dark_surface_light</item>
+    </style>
+
 </resources>

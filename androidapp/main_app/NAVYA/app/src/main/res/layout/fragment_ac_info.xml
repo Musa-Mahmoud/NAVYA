@@ -1,0 +1,69 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/info_panel_background">
+    <!-- Car Image -->
+    <ImageView
+        android:id="@+id/car_image"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_gravity="center"
+        android:src="@drawable/car_ac"
+        android:contentDescription="Car overview"
+        android:scaleType="fitCenter" />
+
+    <!-- Front AC Wind Overlay -->
+    <ImageView
+        android:id="@+id/front_ac_wind"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_gravity="center"
+        android:src="@drawable/front_wind"
+        android:visibility="gone"
+        android:alpha="0.9"
+        android:contentDescription="Front AC airflow overlay"
+        android:scaleType="fitCenter" />
+
+    <!-- Rear AC Wind Overlay -->
+    <ImageView
+        android:id="@+id/rear_ac_wind"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:layout_gravity="center"
+        android:src="@drawable/rear_wind"
+        android:visibility="gone"
+        android:alpha="0.9"
+        android:contentDescription="Rear AC airflow overlay"
+        android:scaleType="fitCenter" />
+
+    <!-- Bottom Info Section -->
+    <LinearLayout
+        android:id="@+id/info_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/info_panel_background">
+
+        <TextView
+            android:id="@+id/inner_temp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="22°C"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.02"
+            android:contentDescription="Current interior temperature" />
+
+        <!-- Optional future additions:
+             - Fan speed
+             - AC mode (auto/manual)
+             - Temperature slider -->
+    </LinearLayout>
+
+</FrameLayout>
